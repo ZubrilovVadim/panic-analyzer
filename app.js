@@ -1,18 +1,14 @@
-
 // ============================================
-// PANIC ANALYZER — логика анализа
+// PANIC ANALYZER — логика анализа (v2.0)
 // ============================================
 
 let DATABASE = null;
 
-// Загрузка базы при старте
 async function loadDatabase() {
   try {
     const cached = localStorage.getItem('panic_db');
-    if (cached) {
-      DATABASE = JSON.parse(cached);
-    }
-    // Пробуем обновить из сети
+    if (cached) DATABASE = JSON.parse(cached);
+
     const response = await fetch('database.json');
     if (response.ok) {
       const fresh = await response.json();
@@ -22,130 +18,128 @@ async function loadDatabase() {
     updateVersionLabel();
     setStatus(true);
   } catch (e) {
-    if (DATABASE) {
-      setStatus(false);
-    } else {
-      document.getElementById('version').textContent = 'База не загружена';
-    }
+    if (DATABASE) setStatus(false);
+    else document.getElementById('version').textContent = 'База не загружена';
   }
 }
 
 function updateVersionLabel() {
   if (!DATABASE) return;
-  document.getElementById('version').textContent = 
+  document.getElementById('version').textContent =
     'База v' + DATABASE.version + ' · ' + DATABASE.updated;
 }
 
 function setStatus(online) {
   const el = document.getElementById('status');
-  if (online) {
-    el.textContent = 'Онлайн';
-    el.classList.remove('offline');
-  } else {
-    el.textContent = 'Офлайн';
-    el.classList.add('offline');
-  }
+  el.textContent = online ? 'Онлайн' : 'Офлайн';
+  el.classList.toggle('offline', !online);
 }
 
-// Извлечение модели из лога
+// --- Парсеры ---
+
 function extractModel(text) {
-  const match = text.match(/"product"\s*:\s*"([^"]+)"/);
-  return match ? match[1] : null;
+  const m = text.match(/"product"\s*:\s*"([^"]+)"/);
+  return m ? m[1] : null;
 }
 
-// Извлечение hex-кода из sensor array
 function extractSensorArray(text) {
-  const match = text.match(/sensor array 0 - 3 is ([^\n]+)/);
-  if (!match) return null;
-  const values = match[1].split(',').map(s => s.trim());
+  const m = text.match(/sensor array 0 - 3 is ([^\n]+)/);
+  if (!m) return null;
+  const values = m[1].split(',').map(s => s.trim());
   const found = [];
-  values.forEach((v, i) => {
+  values.forEach(v => {
     const clean = v.replace(/^0x/i, '').toLowerCase();
-    if (clean !== '0' && clean !== '0x0') {
-      found.push('0x' + clean);
-    }
+    if (clean !== '0' && clean !== '0x0') found.push('0x' + clean);
   });
   return found;
 }
 
-// Извлечение i2c-ошибок
 function extractI2C(text) {
-  const matches = text.match(/i2c[0-5]/gi);
-  return matches ? [...new Set(matches.map(m => m.toLowerCase()))] : [];
+  const m = text.match(/i2c[0-5]/gi);
+  return m ? [...new Set(m.map(x => x.toLowerCase()))] : [];
 }
 
-// Извлечение AOP panic
 function extractAOP(text) {
   if (/AOP PANIC/i.test(text)) {
-    const match = text.match(/AOP PANIC[^\n]*/i);
-    return match ? match[0] : 'AOP PANIC';
+    const m = text.match(/AOP PANIC[^\n]*/i);
+    return m ? m[0] : 'AOP PANIC';
   }
   return null;
 }
 
-// Извлечение других известных кодов
 function extractOtherCodes(text) {
   const codes = [];
-  if (/eMemory panic/i.test(text)) codes.push('eMemory panic');
-  if (/SEP ROM/i.test(text)) codes.push('SEP ROM');
-  if (/SEP DATA/i.test(text)) codes.push('SEP DATA');
-  if (/ANS2?/i.test(text)) codes.push('ANS/ANS2');
-  if (/AP Watchdog/i.test(text)) codes.push('AP Watchdog timeout');
-  if (/USB PANIC.*Overcurrent/i.test(text)) codes.push('USB PANIC: Overcurrent');
-  if (/AMCC Error/i.test(text)) codes.push('AMCC Error');
-  if (/AppleBCMWLAN/i.test(text)) codes.push('AppleBCMWLAN');
-  if (/baseband panic/i.test(text)) codes.push('baseband panic');
-  if (/cpu0 fail to halt/i.test(text)) codes.push('cpu0 fail to halt');
-  if (/WDT timeout/i.test(text)) codes.push('WDT timeout');
-  if (/Speaker Panic/i.test(text)) codes.push('Speaker Panic');
-  if (/Display TCON Panic/i.test(text)) codes.push('Display TCON Panic');
+  const checks = [
+    'eMemory panic', 'SEP ROM', 'SEP DATA', 'ANS/ANS2',
+    'AP Watchdog timeout', 'USB PANIC: Overcurrent', 'AMCC Error',
+    'AppleBCMWLAN', 'baseband panic', 'cpu0 fail to halt',
+    'WDT timeout', 'Speaker Panic', 'Display TCON Panic',
+    'Prox/ALS Panic', 'Multiple Mic Failure', 'Audio DSP Panic',
+    'NAND Panic', 'Thermal Panic'
+  ];
+  checks.forEach(c => { if (new RegExp(c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').test(text)) codes.push(c); });
   return codes;
 }
 
-// Основная функция анализа
+// НОВОЕ: поиск паяльных (board-level) паников
+function extractBoardLevel(text) {
+  if (!DATABASE || !DATABASE.board_level) return [];
+  const found = [];
+  for (const category in DATABASE.board_level) {
+    const items = DATABASE.board_level[category];
+    for (const key in items) {
+      // Экранируем спецсимволы для regex
+      const safe = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (new RegExp(safe, 'i').test(text)) {
+        found.push({ category: category, key: key, value: items[key] });
+      }
+    }
+  }
+  return found;
+}
+
+// --- Главная функция ---
+
 function analyze() {
   const input = document.getElementById('input').value.trim();
   const resultEl = document.getElementById('result');
 
-  if (!input) {
-    showError('Вставь текст panic-лога');
-    return;
-  }
-
-  if (!DATABASE) {
-    showError('База данных не загружена. Проверь интернет и обнови страницу.');
-    return;
-  }
+  if (!input) { showError('Вставь текст panic-лога'); return; }
+  if (!DATABASE) { showError('База данных не загружена. Проверь интернет и обнови страницу.'); return; }
 
   const model = extractModel(input);
   const sensorCodes = extractSensorArray(input);
   const i2cCodes = extractI2C(input);
   const aopCode = extractAOP(input);
   const otherCodes = extractOtherCodes(input);
+  const boardCodes = extractBoardLevel(input);
 
-  if (!model && !sensorCodes && i2cCodes.length === 0 && !aopCode && otherCodes.length === 0) {
-    showError('Не удалось распознать panic-лог. Убедись, что вставил полный текст.');
+  const nothingFound = !model && !sensorCodes && i2cCodes.length === 0 &&
+                       !aopCode && otherCodes.length === 0 && boardCodes.length === 0;
+
+  if (nothingFound) {
+    showError('Не удалось распознать panic-лог. Убедись, что вставил полный текст (со строкой "product" и "panicString").');
     return;
   }
 
   let html = '<h2>📋 Результат анализа</h2>';
 
-  // Модель
   if (model) {
-    const modelName = (DATABASE.models[model] && DATABASE.models[model].name) || model;
-    html += field('Модель устройства', modelName + ' (' + model + ')', true);
+    const name = (DATABASE.models[model] && DATABASE.models[model].name) || model;
+    html += field('Модель устройства', name + ' (' + model + ')', true);
+  } else {
+    html += field('Модель устройства', 'Не удалось определить (в логе нет строки "product")', false);
   }
 
-  // SMC PANIC
-  if (sensorCodes && sensorCodes.length > 0 && model && DATABASE.models[model]) {
-    const smcDb = DATABASE.models[model].smc_codes || {};
+  // SMC
+  if (sensorCodes && sensorCodes.length > 0) {
     sensorCodes.forEach(code => {
-      const cause = smcDb[code] || DATABASE.generic_smc[code] || 'Неизвестный код';
-      html += probable('SMC PANIC · ' + code, cause);
-    });
-  } else if (sensorCodes && sensorCodes.length > 0) {
-    sensorCodes.forEach(code => {
-      const cause = DATABASE.generic_smc[code] || 'Неизвестный код — модель не определена';
+      let cause = 'Неизвестный код';
+      if (model && DATABASE.models[model] && DATABASE.models[model].smc_codes && DATABASE.models[model].smc_codes[code]) {
+        cause = DATABASE.models[model].smc_codes[code];
+      } else if (DATABASE.generic_smc && DATABASE.generic_smc[code]) {
+        cause = DATABASE.generic_smc[code];
+      }
       html += probable('SMC PANIC · ' + code, cause);
     });
   }
@@ -153,39 +147,45 @@ function analyze() {
   // i2c
   if (i2cCodes.length > 0) {
     i2cCodes.forEach(code => {
-      const cause = DATABASE.i2c[code] || 'Неизвестная i2c-ошибка';
+      const cause = (DATABASE.i2c && DATABASE.i2c[code]) || 'Неизвестная i2c-ошибка';
       html += probable(code.toUpperCase(), cause);
     });
   }
 
   // AOP
   if (aopCode) {
-    const cause = DATABASE.aop[aopCode] || DATABASE.aop['AOP PANIC'] || 'Неизвестный AOP-код';
+    const cause = (DATABASE.aop && (DATABASE.aop[aopCode] || DATABASE.aop['AOP PANIC'])) || 'Неизвестный AOP-код';
     html += probable(aopCode, cause);
   }
 
-  // Остальные
+  // Прочие
   otherCodes.forEach(code => {
-    const cause = DATABASE.other[code] || 'Нет описания';
+    const cause = (DATABASE.other && DATABASE.other[code]) || 'Нет описания';
     html += probable(code, cause);
   });
+
+  // НОВОЕ: паяльные паники
+  if (boardCodes.length > 0) {
+    html += '<div style="margin-top:16px;padding-top:12px;border-top:2px solid #ff6b6b;">' +
+            '<div style="color:#ff6b6b;font-weight:700;font-size:14px;margin-bottom:10px;">🔧 ТРЕБУЕТ ПАЙКИ / ПЛАТА</div>';
+    boardCodes.forEach(item => {
+      html += probable(item.category + ' · ' + item.key, item.value);
+    });
+    html += '</div>';
+  }
 
   resultEl.innerHTML = html;
   resultEl.className = 'result show';
 }
 
 function field(label, value, highlight) {
-  return '<div class="field">' +
-    '<div class="field-label">' + label + '</div>' +
-    '<div class="field-value' + (highlight ? ' highlight' : '') + '">' + value + '</div>' +
-    '</div>';
+  return '<div class="field"><div class="field-label">' + label + '</div>' +
+    '<div class="field-value' + (highlight ? ' highlight' : '') + '">' + value + '</div></div>';
 }
 
 function probable(label, text) {
-  return '<div class="probable">' +
-    '<div class="label">' + label + '</div>' +
-    '<div class="text">' + text + '</div>' +
-    '</div>';
+  return '<div class="probable"><div class="label">' + label + '</div>' +
+    '<div class="text">' + text + '</div></div>';
 }
 
 function showError(msg) {
@@ -199,7 +199,6 @@ function clearAll() {
   document.getElementById('result').className = 'result';
 }
 
-// Обновление базы вручную
 async function updateDatabase() {
   try {
     const response = await fetch('database.json?t=' + Date.now());
@@ -210,17 +209,11 @@ async function updateDatabase() {
       updateVersionLabel();
       setStatus(true);
       alert('✅ База обновлена до v' + fresh.version);
-    } else {
-      alert('❌ Не удалось обновить базу');
-    }
-  } catch (e) {
-    alert('❌ Нет соединения. База остаётся прежней.');
-  }
+    } else alert('❌ Не удалось обновить базу');
+  } catch (e) { alert('❌ Нет соединения. База остаётся прежней.'); }
 }
 
-// Отслеживание онлайн/офлайн
 window.addEventListener('online', () => setStatus(true));
 window.addEventListener('offline', () => setStatus(false));
 
-// Запуск
 loadDatabase();
