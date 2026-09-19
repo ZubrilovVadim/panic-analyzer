@@ -1,15 +1,19 @@
 // ============================================
-// PANIC ANALYZER — логика анализа (v2.0)
+// PANIC ANALYZER — логика анализа (v3.0)
 // ============================================
 
 let DATABASE = null;
+
+// Приводим «умные» кавычки к обычным
+function normalizeQuotes(text) {
+  return text.replace(/[\u201C\u201D\u201E\u201F]/g, '"');
+}
 
 async function loadDatabase() {
   try {
     const cached = localStorage.getItem('panic_db');
     if (cached) DATABASE = JSON.parse(cached);
-
-    const response = await fetch('database.json');
+    const response = await fetch('database.json?t=' + Date.now());
     if (response.ok) {
       const fresh = await response.json();
       DATABASE = fresh;
@@ -38,19 +42,20 @@ function setStatus(online) {
 // --- Парсеры ---
 
 function extractModel(text) {
-  const m = text.match(/"product"\s*:\s*"([^"]+)"/);
+  const norm = normalizeQuotes(text);
+  const m = norm.match(/"product"\s*:\s*"([^"]+)"/);
   return m ? m[1] : null;
 }
 
 function extractSensorArray(text) {
-  const m = text.match(/sensor array 0 - 3 is ([^\n]+)/);
+  // Берём ровно 4 hex-значения после "sensor array 0 - 3 is"
+  const m = text.match(/sensor array 0 - 3 is\s+(0x[0-9a-f]+)\s*,\s*(0x[0-9a-f]+)\s*,\s*(0x[0-9a-f]+)\s*,\s*(0x[0-9a-f]+)/i);
   if (!m) return null;
-  const values = m[1].split(',').map(s => s.trim());
   const found = [];
-  values.forEach(v => {
-    const clean = v.replace(/^0x/i, '').toLowerCase();
-    if (clean !== '0' && clean !== '0x0') found.push('0x' + clean);
-  });
+  for (let i = 1; i <= 4; i++) {
+    const clean = m[i].toLowerCase().replace(/^0x/, '');
+    if (clean !== '0') found.push('0x' + clean);
+  }
   return found;
 }
 
@@ -61,8 +66,8 @@ function extractI2C(text) {
 
 function extractAOP(text) {
   if (/AOP PANIC/i.test(text)) {
-    const m = text.match(/AOP PANIC[^\n]*/i);
-    return m ? m[0] : 'AOP PANIC';
+    const m = text.match(/AOP PANIC[^\n\\]*/i);
+    return m ? m[0].trim() : 'AOP PANIC';
   }
   return null;
 }
@@ -77,18 +82,19 @@ function extractOtherCodes(text) {
     'Prox/ALS Panic', 'Multiple Mic Failure', 'Audio DSP Panic',
     'NAND Panic', 'Thermal Panic'
   ];
-  checks.forEach(c => { if (new RegExp(c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').test(text)) codes.push(c); });
+  checks.forEach(c => {
+    const safe = c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (new RegExp(safe, 'i').test(text)) codes.push(c);
+  });
   return codes;
 }
 
-// НОВОЕ: поиск паяльных (board-level) паников
 function extractBoardLevel(text) {
   if (!DATABASE || !DATABASE.board_level) return [];
   const found = [];
   for (const category in DATABASE.board_level) {
     const items = DATABASE.board_level[category];
     for (const key in items) {
-      // Экранируем спецсимволы для regex
       const safe = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       if (new RegExp(safe, 'i').test(text)) {
         found.push({ category: category, key: key, value: items[key] });
@@ -131,7 +137,6 @@ function analyze() {
     html += field('Модель устройства', 'Не удалось определить (в логе нет строки "product")', false);
   }
 
-  // SMC
   if (sensorCodes && sensorCodes.length > 0) {
     sensorCodes.forEach(code => {
       let cause = 'Неизвестный код';
@@ -144,7 +149,6 @@ function analyze() {
     });
   }
 
-  // i2c
   if (i2cCodes.length > 0) {
     i2cCodes.forEach(code => {
       const cause = (DATABASE.i2c && DATABASE.i2c[code]) || 'Неизвестная i2c-ошибка';
@@ -152,19 +156,16 @@ function analyze() {
     });
   }
 
-  // AOP
   if (aopCode) {
     const cause = (DATABASE.aop && (DATABASE.aop[aopCode] || DATABASE.aop['AOP PANIC'])) || 'Неизвестный AOP-код';
     html += probable(aopCode, cause);
   }
 
-  // Прочие
   otherCodes.forEach(code => {
     const cause = (DATABASE.other && DATABASE.other[code]) || 'Нет описания';
     html += probable(code, cause);
   });
 
-  // НОВОЕ: паяльные паники
   if (boardCodes.length > 0) {
     html += '<div style="margin-top:16px;padding-top:12px;border-top:2px solid #ff6b6b;">' +
             '<div style="color:#ff6b6b;font-weight:700;font-size:14px;margin-bottom:10px;">🔧 ТРЕБУЕТ ПАЙКИ / ПЛАТА</div>';
