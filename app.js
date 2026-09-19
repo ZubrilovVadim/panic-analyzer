@@ -43,15 +43,17 @@ function extractModel(text) {
   return m ? m[1] : null;
 }
 
+// ИСПРАВЛЕНО: теперь ловит любой диапазон (0-3, 0-6) и любое кол-во значений
 function extractSensorArray(text) {
-  const m = text.match(/sensor array 0 - 3 is\s+(0x[0-9a-f]+)\s*,\s*(0x[0-9a-f]+)\s*,\s*(0x[0-9a-f]+)\s*,\s*(0x[0-9a-f]+)/i);
+  const m = text.match(/sensor array\s+\d+\s*-\s*\d+\s+is\s+([^\n\\]+)/i);
   if (!m) return null;
+  const values = m[1].split(',').map(s => s.trim());
   const found = [];
-  for (let i = 1; i <= 4; i++) {
-    const clean = m[i].toLowerCase().replace(/^0x/, '');
-    if (clean !== '0') found.push('0x' + clean);
-  }
-  return found;
+  values.forEach(v => {
+    const clean = v.replace(/^0x/i, '').toLowerCase();
+    if (clean && clean !== '0') found.push('0x' + clean);
+  });
+  return found.length > 0 ? found : null;
 }
 
 function extractI2C(text) {
