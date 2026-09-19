@@ -16,13 +16,12 @@
       background: #1a1a2e;
       color: #eaeaea;
       min-height: 100vh;
-      padding: 8px;
+      padding: 16px;
       padding-top: env(safe-area-inset-top, 16px);
     }
     .header {
       text-align: center;
       margin-bottom: 20px;
-      margin-top: 40px;
     }
     .header h1 {
       font-size: 22px;
@@ -49,7 +48,7 @@
       background: #16213e;
       border: 1px solid #2a2a4a;
       border-radius: 12px;
-      padding: 10px 8px;
+      padding: 12px;
       color: #eaeaea;
       font-family: 'SF Mono', Menlo, monospace;
       font-size: 12px;
@@ -178,10 +177,5 @@
   </div>
 
   <script src="app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
-    }
-  </script>
 </body>
 </html>
