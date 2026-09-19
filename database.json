@@ -1,63 +1,21 @@
 {
-  "version": "2.0",
-  "updated": "2026-09-18",
+  "version": "3.0",
+  "updated": "2026-09-19",
   "models": {
-    "iPhone10,3": {
-      "name": "iPhone X",
-      "smc_codes": {}
-    },
-    "iPhone10,6": {
-      "name": "iPhone X (Global)",
-      "smc_codes": {}
-    },
-    "iPhone11,2": {
-      "name": "iPhone XS",
-      "smc_codes": {}
-    },
-    "iPhone11,4": {
-      "name": "iPhone XS Max",
-      "smc_codes": {}
-    },
-    "iPhone11,6": {
-      "name": "iPhone XS Max (Global)",
-      "smc_codes": {}
-    },
-    "iPhone11,8": {
-      "name": "iPhone XR",
-      "smc_codes": {}
-    },
-    "iPhone12,1": {
-      "name": "iPhone 11",
-      "smc_codes": {}
-    },
-    "iPhone12,3": {
-      "name": "iPhone 11 Pro",
-      "smc_codes": {}
-    },
-    "iPhone12,5": {
-      "name": "iPhone 11 Pro Max",
-      "smc_codes": {}
-    },
-    "iPhone12,8": {
-      "name": "iPhone SE (2-го поколения)",
-      "smc_codes": {}
-    },
-    "iPhone13,1": {
-      "name": "iPhone 12 mini",
-      "smc_codes": {}
-    },
-    "iPhone13,2": {
-      "name": "iPhone 12",
-      "smc_codes": {}
-    },
-    "iPhone13,3": {
-      "name": "iPhone 12 Pro",
-      "smc_codes": {}
-    },
-    "iPhone13,4": {
-      "name": "iPhone 12 Pro Max",
-      "smc_codes": {}
-    },
+    "iPhone10,3": { "name": "iPhone X", "smc_codes": {} },
+    "iPhone10,6": { "name": "iPhone X (Global)", "smc_codes": {} },
+    "iPhone11,2": { "name": "iPhone XS", "smc_codes": {} },
+    "iPhone11,4": { "name": "iPhone XS Max", "smc_codes": {} },
+    "iPhone11,6": { "name": "iPhone XS Max (Global)", "smc_codes": {} },
+    "iPhone11,8": { "name": "iPhone XR", "smc_codes": {} },
+    "iPhone12,1": { "name": "iPhone 11", "smc_codes": {} },
+    "iPhone12,3": { "name": "iPhone 11 Pro", "smc_codes": {} },
+    "iPhone12,5": { "name": "iPhone 11 Pro Max", "smc_codes": {} },
+    "iPhone12,8": { "name": "iPhone SE (2-го поколения)", "smc_codes": {} },
+    "iPhone13,1": { "name": "iPhone 12 mini", "smc_codes": {} },
+    "iPhone13,2": { "name": "iPhone 12", "smc_codes": {} },
+    "iPhone13,3": { "name": "iPhone 12 Pro", "smc_codes": {} },
+    "iPhone13,4": { "name": "iPhone 12 Pro Max", "smc_codes": {} },
     "iPhone14,2": {
       "name": "iPhone 13 Pro",
       "smc_codes": {
@@ -95,10 +53,7 @@
         "0x10000": "Передний шлейф (Face ID)."
       }
     },
-    "iPhone14,6": {
-      "name": "iPhone SE (3-го поколения)",
-      "smc_codes": {}
-    },
+    "iPhone14,6": { "name": "iPhone SE (3-го поколения)", "smc_codes": {} },
     "iPhone14,7": {
       "name": "iPhone 14",
       "smc_codes": {
@@ -182,9 +137,9 @@
     "iPhone17,1": {
       "name": "iPhone 16 Pro",
       "smc_codes": {
-        "0x100000": "Передний шлейф (Face ID).",
-        "0x300000": "Шлейф порта зарядки (USB-C).",
-        "0x800000": "Аккумулятор."
+        "0x100000": "Передний ш порлейф (Face ID).",
+        "0x300т000": "Шлей зафряд порта зарядки (USB-C).",
+        "0x800ки000": "Аккумулятор."
       }
     },
     "iPhone17,2": {
@@ -217,7 +172,7 @@
     "0x41": "Аккумулятор (линия данных).",
     "0x800": "Шлейф порта зарядки.",
     "0x1000": "Передний шлейф (проксимити).",
-    "0x1800": "Комбо: порт зарядки + передний шлейф.",
+    "0x1800": "Комбо: + передний шлейф.",
     "0x4000": "Аккумулятор.",
     "0x10000": "Передний шлейф (Front Sensor).",
     "0x20000": "Гироскоп / межслойное соединение.",
@@ -242,7 +197,7 @@
     "AOP PANIC": "Датчик приближения или задний микрофон (шлейф камеры).",
     "AOP PANIC - Pressure Controller": "Барометр (обычно в нижнем шлейфе).",
     "AOP PANIC - K2-Bosch": "USB-шлейф (нижний шлейф).",
-    "AOP NMI POWER": "NAND или линии связи с NAND.",
+    "AOP NMI POWER": "NAND или линии связи с NAND. Требует пайки.",
     "AOP PANIC - Prox": "Датчик приближения. Проверь верхний шлейф."
   },
   "other": {
@@ -264,5 +219,47 @@
     "Audio DSP Panic": "Аудиокодек, нижний шлейф (динамик/микрофон).",
     "NAND Panic": "NAND (накопитель). Требует пайки или прошивки.",
     "Thermal Panic": "Перегрев. Проверь аккумулятор и систему охлаждения."
+  },
+  "board_level": {
+    "PCIe": {
+      "AppleOLYHALPortInterfacePCIE": "Таймаут PCIe-шины. NAND, Wi-Fi или обвязка PCIe на плате. Требует пайки.",
+      "AppleOLYHALPlatformFunction": "Ошибка PCIe-контроллера. NAND или линии PCIe. Требует пайки.",
+      "AppleT810xPCIePort": "Таймаут PCIe-порта. NAND или линии PCIe. Требует пайки.",
+      "AppleT8010PCIePort": "Таймаут PCIe-порта (A10). NAND или линии PCIe. Требует пайки."
+    },
+    "NAND_Storage": {
+      "eMemory panic": "NAND (накопитель) или связанные цепи. Требует пайки.",
+      "ANS/ANS2": "NAND. Часто помогает прошивка с удалением данных. Если не помогает — пайка.",
+      "NAND Panic": "NAND (накопитель). Требует пайки или прошивки.",
+      "Storage Controller": "Контроллер NAND. Требует пайки.",
+      "Flash Memory Error": "NAND (флеш-память). Требует пайки."
+    },
+    "CPU_Logic": {
+      "cpu0 fail to halt": "Отвал CPU. Требует пайки (реболл или замена).",
+      "SEP ROM": "Логический чип (Secure Enclave). Требует пайки.",
+      "SEP DATA": "Логический чип (Secure Enclave). Требует пайки.",
+      "AP Watchdog timeout": "Перегрев, NAND, питание (PMIC). Требует диагностики платы.",
+      "AP Panic": "Сбой Application Processor. Требует пайки.",
+      "CPU Panic": "Сбой CPU. Требует пайки."
+    },
+    "Baseband_Modem": {
+      "baseband panic": "Модем. Требует пайки.",
+      "Baseband CPU": "Процессор модема. Требует пайки.",
+      "Modem Panic": "Сбой модема. Требует пайки.",
+      "Baseband EEPROM": "EEPROM модема. Требует пайки."
+    },
+    "Power_PMIC": {
+      "PMIC Panic": "Сбой контроллера питания. Требует пайки.",
+      "Power Management": "Проблема с питанием. Требует диагностики платы.",
+      "Charging IC": "Контроллер зарядки. Требует пайки.",
+      "USB Controller": "USB-контроллер. Требует пайки."
+    },
+    "Other_Board": {
+      "Thermal Panic": "Перегрев. Проверь аккумулятор и систему охлаждения. Если не помогает — пайка.",
+      "AOP NMI POWER": "NAND или линии связи с NAND. Требует пайки.",
+      "Watchdog Timeout": "Процессор не ответил вовремя. NAND, PMIC или CPU. Требует пайки.",
+      "Sandwich Board": "Проблема с межслойными соединениями (для двухслойных плат). Требует пайки.",
+      "Interposer": "Проблема с межслойным соединением. Требует пайки."
+    }
   }
 }
