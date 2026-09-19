@@ -23,15 +23,8 @@
       margin-bottom: 20px;
       margin-top: 40px;
     }
-    .header h1 {
-      font-size: 22px;
-      color: #4ecca3;
-      margin-bottom: 4px;
-    }
-    .header .version {
-      font-size: 12px;
-      color: #888;
-    }
+    .header h1 { font-size: 22px; color: #4ecca3; margin-bottom: 4px; }
+    .header .version { font-size: 12px; color: #888; }
     .status {
       display: inline-block;
       padding: 4px 12px;
@@ -56,11 +49,7 @@
       outline: none;
     }
     textarea:focus { border-color: #4ecca3; }
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
-    }
+    .btn-row { display: flex; gap: 10px; margin-top: 12px; }
     button {
       flex: 1;
       padding: 14px;
@@ -92,11 +81,7 @@
     }
     .result.show { display: block; }
     .result.error { border-left-color: #ff6b6b; }
-    .result h2 {
-      font-size: 16px;
-      color: #4ecca3;
-      margin-bottom: 12px;
-    }
+    .result h2 { font-size: 16px; color: #4ecca3; margin-bottom: 12px; }
     .result.error h2 { color: #ff6b6b; }
     .field {
       margin-bottom: 10px;
@@ -111,11 +96,7 @@
       letter-spacing: 0.5px;
       margin-bottom: 4px;
     }
-    .field-value {
-      font-size: 15px;
-      color: #eaeaea;
-      line-height: 1.4;
-    }
+    .field-value { font-size: 15px; color: #eaeaea; line-height: 1.4; }
     .field-value.highlight { color: #4ecca3; font-weight: 600; }
     .probable {
       background: #1e3a2f;
@@ -129,11 +110,35 @@
       text-transform: uppercase;
       margin-bottom: 6px;
     }
-    .probable .text {
-      font-size: 15px;
-      color: #fff;
-      line-height: 1.5;
+    .probable .text { font-size: 15px; color: #fff; line-height: 1.5; }
+    .measure-box {
+      background: #0f1a2e;
+      border: 1px solid #2a4a6a;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 14px;
     }
+    .measure-title {
+      color: #4ea8de;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .measure-item {
+      background: #16213e;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      border-left: 3px solid #4ea8de;
+    }
+    .measure-key {
+      color: #4ea8de;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .measure-row { font-size: 13px; color: #ddd; margin-bottom: 3px; }
+    .measure-row b { color: #aaa; font-weight: 500; }
     .footer {
       text-align: center;
       font-size: 11px;
@@ -162,7 +167,7 @@
   <div class="result" id="result"></div>
 
   <div class="footer">
-    Panic Analyzer v4.0 · Работает офлайн
+    Panic Analyzer v4.1 · Работает офлайн
   </div>
 
   <script src="app.js"></script>
