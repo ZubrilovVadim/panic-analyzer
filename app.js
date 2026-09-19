@@ -6,7 +6,10 @@ let DATABASE = null;
 
 // Приводим «умные» кавычки к обычным
 function normalizeQuotes(text) {
-  return text.replace(/[\u201C\u201D\u201E\u201F]/g, '"');
+  return text
+    .replace(/[\u2018\u2019\u201A\u201B]/g, '"')
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+    .replace(/'/g, '"');
 }
 
 async function loadDatabase() {
