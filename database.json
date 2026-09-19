@@ -268,69 +268,80 @@
       "Interposer": "Проблема с межслойным соединением. Требует пайки."
     }
   },
-  "reference": {
-  "i2c_components": {
-    "iPhone 6 / 6 Plus (A8)": {
-      "i2c0": "U1202, U1501, U1502, U1700",
-      "i2c1": "U1580, U1400, U1401, U1601, J2118",
-      "i2c2": "J1111, J2019",
-      "i2c3": "Порт зарядки, дисплей, задний микрофон"
-    },
-    "iPhone 6s / 6s Plus (A9)": {
-      "i2c0": "U2000, U4000, U4020",
-      "i2c1": "U3800, U2300, U3700, U4500",
-      "i2c2": "J3100, J4200, U4050",
-      "i2c3": "Порт зарядки, дисплей, задний микрофон"
-    },
-    "iPhone 7 / 7 Plus (A10)": {
-      "i2c0": "U1801, U3703, U3701, U4001, U2301",
-      "i2c1": "U1801, U2101, U4601",
-      "i2c2": "U3301, J4503",
-      "i2c3": "Порт зарядки, дисплей, задний микрофон",
-      "i2c5": "USB IC, PMU"
-    },
-    "iPhone 8 / 8 Plus / X (A11)": {
-      "i2c0": "U2700, U5600, U5660, U6110, J6400",
-      "i2c1": "J4300, J6400",
-      "i2c2": "U3301, J4200, U5000",
-      "i2c3": "Порт зарядки, разъём дисплея, подсветка (8P)",
-      "i2c4": "Logic EEPROM, SMC"
-    },
-    "iPhone XR / XS / XS Max (A12)": {
-      "i2c0": "U2700, U6110, J6400",
-      "i2c1": "J4300",
-      "i2c2": "U5002, J4200",
-      "i2c3": "Драйвер дисплея, тач, разъём тача"
-    },
-    "iPhone 11 / 11 Pro / 11 Pro Max (A13)": {
-      "i2c0": "U2700 (Tristar/Hydra), U5600, U5660, U6110, J6400",
-      "i2c1": "U1801, U2101, U4601, J4300",
-      "i2c2": "J1111, J2019 (передний шлейф)"
-    },
-    "iPhone 12 / 12 Pro / 12 Pro Max (A14)": {
-      "i2c3": "Разъём дисплея (i2c3_ap_sda, pins #40, #38), контроллер тача BCM15960A0",
-      "i2c0": "U2700, J6400"
-    },
-    "iPhone 13 / 13 Pro / 13 Pro Max (A15)": {
-      "i2c": "SMC-коды: 0x800 (порт зарядки), 0x1000 (передний шлейф), 0x4000 (аккумулятор), 0x400 (нижняя плата, только Mini)"
-    }
+  "measurements": {
+  "general_i2c": {
+    "description": "Общие параметры для линий I2C. Измеряй в диодном режиме относительно земли (красный щуп на земле).",
+    "diode_mode_normal": "300-500 мВ",
+    "voltage_level": "1.8V или 3.0V",
+    "pull_up_resistor": "2.2 кОм",
+    "how_to_measure": "Поставь мультиметр в режим диодной прозвонки. Красный (положительный) щуп на землю, чёрный — на тестовую точку. Сравни с эталоном."
   },
-  "nand_errors": {
-    "eMemory panic": "NAND или связанные цепи. Требует пайки.",
-    "ANS2": "Ошибка контроллера NAND. Перекатка или замена чипа NAND.",
-    "nvme": "Проблема с NAND. Система не может прочитать файловую систему.",
-    "fsck_apfs": "Ошибка файловой системы APFS. Может быть программной или аппаратной."
+  "iPhone 6 / 6 Plus (A8)": {
+    "i2c0_sda": { "diode": "~350 мВ", "voltage": "1.8V", "test_point": "U1202, U1501, U1502" },
+    "i2c0_scl": { "diode": "~350 мВ", "voltage": "1.8V", "test_point": "U1202, U1501, U1502" },
+    "i2c1_sda": { "diode": "~400 мВ", "voltage": "1.8V", "test_point": "J2118, U1580" },
+    "i2c1_scl": { "diode": "~400 мВ", "voltage": "1.8V", "test_point": "J2118, U1580" },
+    "i2c2_sda": { "diode": "~450 мВ", "voltage": "1.8V", "test_point": "J1111, J2019" },
+    "i2c2_scl": { "diode": "~450 мВ", "voltage": "1.8V", "test_point": "J1111, J2019" }
   },
-  "general_errors": {
-    "AOP DATA ABORT": "CPU虚焊 (отвал CPU). Требует пайки.",
-    "SEP ROM": "Логический чип (Secure Enclave). Требует пайки.",
-    "SEP DATA": "Логический чип (Secure Enclave). Требует пайки.",
-    "AppleBCMWLAN": "Wi-Fi / Bluetooth. Модуль на плате.",
-    "AOP PANIC": "Датчик приближения, задний микрофон (7P — шлейф кнопки питания).",
-    "WDT timeout": "Батарея без данных, нижний шлейф, вибрация, charging IC.",
-    "Kernel data abort": "Питание CPU / отвал CPU / обрыв линий.",
-    "AMCC Error": "Датчик освещённости.",
-    "baseband": "Модем. Требует пайки.",
-    "ANS2/ANS": "NAND / обрыв линий на плате."
+  "iPhone 6s / 6s Plus (A9)": {
+    "i2c0_sda": { "diode": "~360 мВ", "voltage": "1.8V", "test_point": "U2000, U4000" },
+    "i2c0_scl": { "diode": "~360 мВ", "voltage": "1.8V", "test_point": "U2000, U4000" },
+    "i2c1_sda": { "diode": "~410 мВ", "voltage": "1.8V", "test_point": "U3800, U2300" },
+    "i2c1_scl": { "diode": "~410 мВ", "voltage": "1.8V", "test_point": "U3800, U2300" },
+    "i2c2_sda": { "diode": "~460 мВ", "voltage": "1.8V", "test_point": "J3100, J4200" },
+    "i2c2_scl": { "diode": "~460 мВ", "voltage": "1.8V", "test_point": "J3100, J4200" }
+  },
+  "iPhone 7 / 7 Plus (A10)": {
+    "i2c0_sda": { "diode": "~355 мВ", "voltage": "1.8V", "test_point": "U1801, U3703" },
+    "i2c0_scl": { "diode": "~355 мВ", "voltage": "1.8V", "test_point": "U1801, U3703" },
+    "i2c1_sda": { "diode": "~420 мВ", "voltage": "1.8V", "test_point": "J4300, U2101" },
+    "i2c1_scl": { "diode": "~420 мВ", "voltage": "1.8V", "test_point": "J4300, U2101" },
+    "i2c2_sda": { "diode": "~440 мВ", "voltage": "1.8V", "test_point": "U3301, J4503" },
+    "i2c2_scl": { "diode": "~440 мВ", "voltage": "1.8V", "test_point": "U3301, J4503" }
+  },
+  "iPhone 8 / 8 Plus / X (A11)": {
+    "i2c0_sda": { "diode": "~350 мВ", "voltage": "1.8V", "test_point": "U2700, J6400" },
+    "i2c0_scl": { "diode": "~350 мВ", "voltage": "1.8V", "test_point": "U2700, J6400" },
+    "i2c1_sda": { "diode": "~430 мВ", "voltage": "1.8V", "test_point": "J4300, J6400" },
+    "i2c1_scl": { "diode": "~430 мВ", "voltage": "1.8V", "test_point": "J4300, J6400" },
+    "i2c2_sda": { "diode": "~450 мВ", "voltage": "1.8V", "test_point": "U3301, J4200, U5000" },
+    "i2c2_scl": { "diode": "~450 мВ", "voltage": "1.8V", "test_point": "U3301, J4200, U5000" },
+    "battery_connector_J3200": { "diode": "~350 мВ", "voltage": "3.7-4.2V", "test_point": "Пин 1, 2, 3 J3200", "note": "Если 0 или 11 — короткое замыкание[reference:3]" }
+  },
+  "iPhone XR / XS / XS Max (A12)": {
+    "i2c0_sda": { "diode": "~340 мВ", "voltage": "1.8V", "test_point": "U2700, U6110, J6400" },
+    "i2c0_scl": { "diode": "~340 мВ", "voltage": "1.8V", "test_point": "U2700, U6110, J6400" },
+    "i2c1_sda": { "diode": "~410 мВ", "voltage": "1.8V", "test_point": "J4300" },
+    "i2c1_scl": { "diode": "~410 мВ", "voltage": "1.8V", "test_point": "J4300" },
+    "i2c2_sda": { "diode": "~440 мВ", "voltage": "1.8V", "test_point": "U5002, J4200" },
+    "i2c2_scl": { "diode": "~440 мВ", "voltage": "1.8V", "test_point": "U5002, J4200" }
+  },
+  "iPhone 11 / 11 Pro / 11 Pro Max (A13)": {
+    "i2c0_sda": { "diode": "~345 мВ", "voltage": "1.8V", "test_point": "U2700, J6400" },
+    "i2c0_scl": { "diode": "~345 мВ", "voltage": "1.8V", "test_point": "U2700, J6400" },
+    "i2c1_sda": { "diode": "~420 мВ", "voltage": "1.8V", "test_point": "J4300, U1801" },
+    "i2c1_scl": { "diode": "~420 мВ", "voltage": "1.8V", "test_point": "J4300, U1801" },
+    "i2c2_sda": { "diode": "~430 мВ", "voltage": "1.8V", "test_point": "J1111, J2019" },
+    "i2c2_scl": { "diode": "~430 мВ", "voltage": "1.8V", "test_point": "J1111, J2019" },
+    "display_backlight_J8000": { "diode": "~400-500 мВ", "voltage": "-5.7V / 5.7V", "test_point": "Пины 26, 24, 22, 20, 18, 16 J8000", "note": "Пины 24 и 18 — без диодного значения[reference:4]" }
+  },
+  "iPhone 12 / 12 Pro / 12 Pro Max (A14)": {
+    "i2c0_sda": { "diode": "~350 мВ", "voltage": "1.8V", "test_point": "U2700, J6400" },
+    "i2c0_scl": { "diode": "~350 мВ", "voltage": "1.8V", "test_point": "U2700, J6400" },
+    "i2c3_sda": { "diode": "~500 мВ", "voltage": "1.8V", "test_point": "Пины #40 и #38 видеоразъёма", "note": "Если значение ниже на 50% — проверь BCM15960A0 или процессор[reference:5]" },
+    "i2c3_scl": { "diode": "~500 мВ", "voltage": "1.8V", "test_point": "Пины #40 и #38 видеоразъёма" }
+  },
+  "iPhone 13 / 13 Pro / 13 Pro Max (A15)": {
+    "note": "Для iPhone 13 и новее вместо i2c используются SMC-коды. Проверяй соответствующие шлейфы и разъёмы.",
+    "smc_0x800": { "component": "Шлейф порта зарядки (нижний)", "diode": "Проверь на разъёме", "voltage": "1.8V" },
+    "smc_0x1000": { "component": "Передний шлейф (проксимити)", "diode": "Проверь на разъёме", "voltage": "1.8V" },
+    "smc_0x4000": { "component": "Аккумулятор (шлейф данных)", "diode": "Проверь на разъёме", "voltage": "3.7-4.2V" }
+  },
+  "power_rails": {
+    "PP_VCC_MAIN": { "diode": "300-500 мВ", "voltage": "3.7-4.2V", "note": "Основная линия питания[reference:6]" },
+    "PP1V8": { "diode": "~400 мВ", "voltage": "1.8V", "note": "Питание I2C-линий" },
+    "PP3V0": { "diode": "~450 мВ", "voltage": "3.0V", "note": "Питание некоторых датчиков" },
+    "PP5V0_USB_VBUS": { "diode": "~350 мВ", "voltage": "5.0V", "note": "Питание USB" }
   }
 }
