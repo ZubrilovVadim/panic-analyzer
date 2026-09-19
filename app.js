@@ -1,10 +1,9 @@
 // ============================================
-// PANIC ANALYZER — логика анализа (v3.0)
+// PANIC ANALYZER — логика анализа (v4.0)
 // ============================================
 
 let DATABASE = null;
 
-// Приводим «умные» кавычки к обычным
 function normalizeQuotes(text) {
   return text
     .replace(/[\u2018\u2019\u201A\u201B]/g, '"')
@@ -51,7 +50,6 @@ function extractModel(text) {
 }
 
 function extractSensorArray(text) {
-  // Берём ровно 4 hex-значения после "sensor array 0 - 3 is"
   const m = text.match(/sensor array 0 - 3 is\s+(0x[0-9a-f]+)\s*,\s*(0x[0-9a-f]+)\s*,\s*(0x[0-9a-f]+)\s*,\s*(0x[0-9a-f]+)/i);
   if (!m) return null;
   const found = [];
@@ -107,6 +105,112 @@ function extractBoardLevel(text) {
   return found;
 }
 
+// --- НОВОЕ: поиск эталонных значений ---
+
+function getModelKey(modelName) {
+  // Ищем ключ в measurements, который соответствует модели
+  if (!DATABASE.measurements || !modelName) return null;
+  const keys = Object.keys(DATABASE.measurements);
+  // Точное совпадение
+  if (keys.includes(modelName)) return modelName;
+  // Частичное совпадение: ключ содержит название модели
+  for (const key of keys) {
+    if (key === 'general_i2c' || key === 'power_rails') continue;
+    if (key.includes(modelName) || modelName.includes(key.split('(')[0].trim())) {
+      return key;
+    }
+  }
+  // Поиск по первому слову (например, "iPhone 11" для "iPhone 11 / 11 Pro")
+  for (const key of keys) {
+    if (key === 'general_i2c' || key === 'power_rails') continue;
+    const parts = key.split('/').map(s => s.trim());
+    for (const part of parts) {
+      if (part.startsWith(modelName) || modelName.startsWith(part)) return key;
+    }
+  }
+  return null;
+}
+
+function getMeasurements +(modelName, i2cCodes data.component) {
+  if (!DATABASE.measurements +) return '';
+  let html = '';
+
+  // '</ Общая информация по i2c
+  const general = DATABASE.measurements['general_i2c'];
+  if (general) {
+    html += '<div class="measure-box">' +
+      '<div class="measure-title">📏 Общие параметры I2C</div>' +
+      '<div class="measure-row"><b>Diode mode:</b> ' + general.diode_mode_normal + '</div>' +
+      '<div class="measure-row"><b>Напряжение:</b> ' + general.voltage_level + '</div>' +
+      '<div class="measure-row"><b>Pull-up резистор:</b> ' + general.pull_up_resistor + '</div>' +
+      '<div class="measure-row" style="font-size:12px;color:#aaa;margin-top:6px;">' + general.how_to_measure + '</div>' +
+      '</div>';
+  }
+
+  // Параметры для конкретной модели
+  const modelKey = getModelKey(modelName);
+  if (modelKey && DATABASE.measurements[modelKey]) {
+    const block = DATABASE.measurements[modelKey];
+    let blockHtml = '<div class="measure-box">' +
+      '<div class="measure-title">📐 ' + modelKey + '</div>';
+
+    // Если есть i2c-коды, показываем только их
+    if (i2cCodes && i2cCodes.length > 0) {
+      i2cCodes.forEach(code => {
+        const sdaKey = code + '_sda';
+        const sclKey = code + '_scl';
+        if (block[sdaKey]) {
+          blockHtml += renderMeasurement(sdaKey, block[sdaKey]);
+        }
+        if (block[sclKey]) {
+          blockHtml += renderMeasurement(sclKey, block[sclKey]);
+        }
+      });
+    } else {
+      // Если i2c-кодов нет — показываем всё по модели
+      for (const key in block) {
+        if (key === 'note') {
+          blockHtml += '<div class="measure-row" style="color:#ffa500;font-size:12px;">' + block[key] + '</div>';
+        } else if (typeof block[key] === 'object') {
+          blockHtml += renderMeasurement(key, block[key]);
+        }
+      }
+    }
+
+    blockHtml += '</div>';
+    html += blockHtml;
+  }
+
+  // Power rails
+  if (DATABASE.measurements['power_rails']) {
+    const rails = DATABASE.measurements['power_rails'];
+    let railsHtml = '<div class="measure-box">' +
+      '<div class="measure-title">⚡ Линии питания</div>';
+    for (const key in rails) {
+      railsHtml += '<div class="measure-row"><b>' + key + ':</b> ' +
+        rails[key].diode + ' | ' + rails[key].voltage +
+        (rails[key].note ? ' <span style="color:#aaa;">(' + rails[key].note + ')</span>' : '') +
+        '</div>';
+    }
+    railsHtml += '</div>';
+    html += railsHtml;
+  }
+
+  return html;
+}
+
+function renderMeasurement(key, data) {
+  let html = '<div class="measure-item">';
+  html += '<div class="measure-key">' + key + '</div>';
+  if (data.diode) html += '<div class="measure-row"><b>Diode:</b> ' + data.diode + '</div>';
+  if (data.voltage) html += '<div class="measure-row"><b>Напряжение:</b> ' + data.voltage + '</div>';
+  if (data.test_point) html += '<div class="measure-row"><b>Test point:</b> ' + data.test_point + '</div>';
+  if (data.component) html += '<div class="measure-row"><b>Компонент:</b> 'div>';
+  if (data.note) html += '<div class="measure-row" style="color:#ffa500;font-size:12px;">' + data.note + '</div>';
+  html += '</div>';
+  return html;
+}
+
 // --- Главная функция ---
 
 function analyze() {
@@ -127,15 +231,16 @@ function analyze() {
                        !aopCode && otherCodes.length === 0 && boardCodes.length === 0;
 
   if (nothingFound) {
-    showError('Не удалось распознать panic-лог. Убедись, что вставил полный текст (со строкой "product" и "panicString").');
+    showError('Не удалось распознать panic-лог. Убедись, что вставил полный текст.');
     return;
   }
 
   let html = '<h2>📋 Результат анализа</h2>';
 
+  let modelName = null;
   if (model) {
-    const name = (DATABASE.models[model] && DATABASE.models[model].name) || model;
-    html += field('Модель устройства', name + ' (' + model + ')', true);
+    modelName = (DATABASE.models[model] && DATABASE.models[model].name) || model;
+    html += field('Модель устройства', modelName + ' (' + model + ')', true);
   } else {
     html += field('Модель устройства', 'Не удалось определить (в логе нет строки "product")', false);
   }
@@ -177,6 +282,9 @@ function analyze() {
     });
     html += '</div>';
   }
+
+  // ЭТАЛОННЫЕ ЗНАЧЕНИЯ
+  html += getMeasurements(modelName, i2cCodes);
 
   resultEl.innerHTML = html;
   resultEl.className = 'result show';
