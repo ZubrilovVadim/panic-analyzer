@@ -50,8 +50,14 @@ function extractSensorArray(text) {
   const values = m[1].split(',').map(s => s.trim());
   const found = [];
   values.forEach(v => {
-    const clean = v.replace(/^0x/i, '').toLowerCase();
-    if (clean && clean !== '0') found.push('0x' + clean);
+    let clean = v.replace(/^0x/i, '').toLowerCase();
+    if (clean && clean !== '0') {
+      // Если это чистое десятичное число (без 0x), конвертируем в hex
+      if (!/^0x/i.test(v) && /^\d+$/.test(clean)) {
+        clean = parseInt(clean, 10).toString(16);
+      }
+      found.push('0x' + clean);
+    }
   });
   return found.length > 0 ? found : null;
 }
