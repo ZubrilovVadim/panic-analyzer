@@ -2,172 +2,483 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#1a1a2e">
+  <meta name="theme-color" content="#000000">
   <link rel="manifest" href="manifest.json">
   <title>Panic Analyzer</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #1a1a2e;
-      color: #eaeaea;
-      min-height: 100vh;
-      padding: 8px;
-      padding-top: env(safe-area-inset-top, 16px);
+    :root {
+      --bg: #000000;
+      --bg-elevated: rgba(28, 28, 30, 0.72);
+      --bg-elevated-2: rgba(44, 44, 46, 0.72);
+      --bg-input: rgba(28, 28, 30, 0.9);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --text: #ffffff;
+      --text-secondary: rgba(235, 235, 245, 0.6);
+      --text-tertiary: rgba(235, 235, 245, 0.3);
+      --accent: #0a84ff;
+      --accent-2: #30d158;
+      --danger: #ff453a;
+      --warning: #ff9f0a;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
     }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f2f2f7;
+        --bg-elevated: rgba(255, 255, 255, 0.72);
+        --bg-elevated-2: rgba(255, 255, 255, 0.85);
+        --bg-input: rgba(255, 255, 255, 0.9);
+        --border: rgba(0, 0, 0, 0.08);
+        --border-strong: rgba(0, 0, 0, 0.14);
+        --text: #000000;
+        --text-secondary: rgba(60, 60, 67, 0.6);
+        --text-tertiary: rgba(60, 60, 67, 0.3);
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      letter-spacing: -0.01em;
+    }
+
+    body {
+      padding: 0 16px;
+      padding-top: max(env(safe-area-inset-top), 20px);
+      padding-bottom: max(env(safe-area-inset-bottom), 24px);
+      background: var(--bg);
+      position: relative;
+    }
+
+    /* Мягкое свечение на фоне — эффект Liquid Glass */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: -20%;
+      width: 60%;
+      height: 50%;
+      background: radial-gradient(circle, rgba(10, 132, 255, 0.18), transparent 70%);
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -20%;
+      right: -20%;
+      width: 60%;
+      height: 50%;
+      background: radial-gradient(circle, rgba(48, 209, 88, 0.12), transparent 70%);
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    /* ---------- HEADER ---------- */
     .header {
       text-align: center;
-      margin-bottom: 20px;
-      margin-top: 40px;
+      padding: 24px 0 20px;
+      animation: fadeIn 0.5s ease;
     }
-    .header h1 { font-size: 22px; color: #4ecca3; margin-bottom: 4px; }
-    .header .version { font-size: 12px; color: #888; }
-    .status {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      margin-top: 8px;
-      background: #2a2a4a;
-      color: #4ecca3;
+
+    .header .icon-wrap {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 12px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #0a84ff 0%, #30d158 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 8px 24px rgba(10, 132, 255, 0.35);
     }
-    .status.offline { background: #4a2a2a; color: #ff6b6b; }
-    textarea {
-      width: 100%;
-      height: 180px;
-      background: #16213e;
-      border: 1px solid #2a2a4a;
-      border-radius: 12px;
-      padding: 10px 8px;
-      color: #eaeaea;
-      font-family: 'SF Mono', Menlo, monospace;
-      font-size: 12px;
-      resize: vertical;
-      outline: none;
-    }
-    textarea:focus { border-color: #4ecca3; }
-    .btn-row { display: flex; gap: 10px; margin-top: 12px; }
-    button {
-      flex: 1;
-      padding: 14px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.1s;
-    }
-    button:active { transform: scale(0.97); }
-    .btn-analyze { background: #4ecca3; color: #1a1a2e; }
-    .btn-clear { background: #2a2a4a; color: #eaeaea; }
-    .btn-update {
-      background: #2a2a4a;
-      color: #4ecca3;
-      font-size: 14px;
-      padding: 10px;
-      margin-top: 10px;
-      width: 100%;
-    }
-    .result {
-      margin-top: 20px;
-      background: #16213e;
-      border-radius: 12px;
-      padding: 16px;
-      border-left: 4px solid #4ecca3;
-      display: none;
-    }
-    .result.show { display: block; }
-    .result.error { border-left-color: #ff6b6b; }
-    .result h2 { font-size: 16px; color: #4ecca3; margin-bottom: 12px; }
-    .result.error h2 { color: #ff6b6b; }
-    .field {
-      margin-bottom: 10px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #2a2a4a;
-    }
-    .field:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-    .field-label {
-      font-size: 11px;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-    }
-    .field-value { font-size: 15px; color: #eaeaea; line-height: 1.4; }
-    .field-value.highlight { color: #4ecca3; font-weight: 600; }
-    .probable {
-      background: #1e3a2f;
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 8px;
-    }
-    .probable .label {
-      font-size: 11px;
-      color: #4ecca3;
-      text-transform: uppercase;
+
+    .header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
       margin-bottom: 6px;
     }
-    .probable .text { font-size: 15px; color: #fff; line-height: 1.5; }
-    .measure-box {
-      background: #0f1a2e;
-      border: 1px solid #2a4a6a;
-      border-radius: 10px;
-      padding: 12px;
+
+    .header .version {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 12px;
+      background: rgba(48, 209, 88, 0.15);
+      color: var(--accent-2);
+      border: 1px solid rgba(48, 209, 88, 0.25);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: all 0.3s ease;
+    }
+
+    .status-pill::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      animation: pulse 2s infinite;
+    }
+
+    .status-pill.offline {
+      background: rgba(255, 69, 58, 0.15);
+      color: var(--danger);
+      border-color: rgba(255, 69, 58, 0.25);
+    }
+
+    .status-pill.offline::before {
+      animation: none;
+      box-shadow: none;
+    }
+
+    /* ---------- INPUT ---------- */
+    .input-card {
+      background: var(--bg-elevated);
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 4px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+      animation: fadeIn 0.6s ease;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 200px;
+      background: transparent;
+      border: none;
+      padding: 16px;
+      color: var(--text);
+      font-family: 'SF Mono', ui-monospace, Menlo, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      resize: vertical;
+      outline: none;
+      border-radius: var(--radius-lg);
+      letter-spacing: 0;
+    }
+
+    textarea::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    /* ---------- BUTTONS ---------- */
+    .btn-row {
+      display: flex;
+      gap: 10px;
       margin-top: 14px;
     }
+
+    button {
+      flex: 1;
+      padding: 16px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+                  filter 0.15s ease,
+                  box-shadow 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    button:active {
+      transform: scale(0.96);
+      filter: brightness(0.9);
+    }
+
+    .btn-analyze {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 4px 16px rgba(10, 132, 255, 0.3);
+    }
+
+    .btn-clear {
+      background: var(--bg-elevated-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .btn-update {
+      width: 100%;
+      margin-top: 10px;
+      padding: 14px;
+      background: var(--bg-elevated);
+      color: var(--accent);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      font-size: 15px;
+    }
+
+    /* ---------- RESULT ---------- */
+    .result {
+      margin-top: 20px;
+      padding: 20px;
+      background: var(--bg-elevated);
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      display: none;
+      animation: slideUp 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .result.show { display: block; }
+
+    .result h2 {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .result.error h2 { color: var(--danger); }
+
+    /* ---------- FIELDS ---------- */
+    .field {
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .field:first-of-type {
+      padding-top: 0;
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+    }
+
+    .field-value {
+      font-size: 16px;
+      color: var(--text);
+      line-height: 1.4;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    .field-value.highlight {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ---------- PROBABLE CARD ---------- */
+    .probable {
+      background: var(--bg-elevated-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-top: 10px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .probable .label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-2);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    .probable .text {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    /* ---------- MEASUREMENTS ---------- */
+    .measure-box {
+      background: rgba(10, 132, 255, 0.08);
+      border: 1px solid rgba(10, 132, 255, 0.2);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-top: 14px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
     .measure-title {
-      color: #4ea8de;
+      color: var(--accent);
       font-weight: 700;
       font-size: 14px;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: -0.01em;
     }
+
     .measure-item {
-      background: #16213e;
-      border-radius: 6px;
-      padding: 8px 10px;
+      background: var(--bg-elevated-2);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
       margin-bottom: 8px;
-      border-left: 3px solid #4ea8de;
+      border-left: 3px solid var(--accent);
     }
+
+    .measure-item:last-child { margin-bottom: 0; }
+
     .measure-key {
-      color: #4ea8de;
+      color: var(--accent);
       font-weight: 600;
       font-size: 13px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+      font-family: 'SF Mono', ui-monospace, monospace;
+      letter-spacing: -0.01em;
     }
-    .measure-row { font-size: 13px; color: #ddd; margin-bottom: 3px; }
-    .measure-row b { color: #aaa; font-weight: 500; }
+
+    .measure-row {
+      font-size: 13px;
+      color: var(--text);
+      margin-bottom: 3px;
+      line-height: 1.5;
+    }
+
+    .measure-row:last-child { margin-bottom: 0; }
+
+    .measure-row b {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* ---------- FOOTER ---------- */
     .footer {
       text-align: center;
       font-size: 11px;
-      color: #555;
+      color: var(--text-tertiary);
+      margin-top: 24px;
+      padding: 16px 0;
+      font-weight: 500;
+    }
+
+    /* ---------- ANIMATIONS ---------- */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ---------- DIVIDER для паяльных ---------- */
+    .board-divider {
       margin-top: 20px;
-      padding-bottom: env(safe-area-inset-bottom, 20px);
+      padding-top: 16px;
+      border-top: 2px solid rgba(255, 69, 58, 0.3);
+    }
+
+    .board-divider .title {
+      color: var(--danger);
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 12px;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>🔍 Panic Analyzer</h1>
-    <div class="version" id="version">База: загрузка...</div>
-    <div class="status" id="status">Онлайн</div>
-  </div>
+  <div class="app">
+    <div class="header">
+      <div class="icon-wrap">🔍</div>
+      <h1>Panic Analyzer</h1>
+      <div class="version" id="version">База: загрузка...</div>
+      <div class="status-pill" id="status">Онлайн</div>
+    </div>
 
-  <textarea id="input" placeholder="Вставь сюда текст panic-лога..."></textarea>
+    <div class="input-card">
+      <textarea id="input" placeholder="Вставь сюда текст panic-лога..."></textarea>
+    </div>
 
-  <div class="btn-row">
-    <button class="btn-analyze" onclick="analyze()">Анализировать</button>
-    <button class="btn-clear" onclick="clearAll()">Очистить</button>
-  </div>
+    <div class="btn-row">
+      <button class="btn-analyze" onclick="analyze()">Анализировать</button>
+      <button class="btn-clear" onclick="clearAll()">Очистить</button>
+    </div>
 
-  <button class="btn-update" onclick="updateDatabase()">🔄 Обновить базу</button>
+    <button class="btn-update" onclick="updateDatabase()">🔄 Обновить базу</button>
 
-  <div class="result" id="result"></div>
+    <div class="result" id="result"></div>
 
-  <div class="footer">
-    Panic Analyzer v4.1 · Работает офлайн
+    <div class="footer">
+      Panic Analyzer v4.1 · iOS Style
+    </div>
   </div>
 
   <script src="app.js"></script>
