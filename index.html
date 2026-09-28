@@ -11,34 +11,34 @@
   <style>
     :root {
       --bg: #000000;
-      --bg-elevated: rgba(28, 28, 30, 0.72);
-      --bg-elevated-2: rgba(44, 44, 46, 0.72);
-      --bg-input: rgba(28, 28, 30, 0.9);
-      --border: rgba(255, 255, 255, 0.08);
-      --border-strong: rgba(255, 255, 255, 0.14);
+      --glass-bg: rgba(30, 30, 32, 0.55);
+      --glass-bg-light: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-border-top: rgba(255, 255, 255, 0.35);
+      --glass-shadow: rgba(0, 0, 0, 0.55);
       --text: #ffffff;
       --text-secondary: rgba(235, 235, 245, 0.6);
       --text-tertiary: rgba(235, 235, 245, 0.3);
-      --accent: #0a84ff;
-      --accent-2: #30d158;
+      --accent-blue: #5ac8fa;
+      --accent-blue-bright: #0a84ff;
+      --accent-green: #30d158;
       --danger: #ff453a;
       --warning: #ff9f0a;
-      --radius-lg: 22px;
-      --radius-md: 16px;
-      --radius-sm: 12px;
     }
 
     @media (prefers-color-scheme: light) {
       :root {
-        --bg: #f2f2f7;
-        --bg-elevated: rgba(255, 255, 255, 0.72);
-        --bg-elevated-2: rgba(255, 255, 255, 0.85);
-        --bg-input: rgba(255, 255, 255, 0.9);
-        --border: rgba(0, 0, 0, 0.08);
-        --border-strong: rgba(0, 0, 0, 0.14);
+        --bg: #e8e8ed;
+        --glass-bg: rgba(255, 255, 255, 0.45);
+        --glass-bg-light: rgba(255, 255, 255, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.7);
+        --glass-border-top: rgba(255, 255, 255, 0.95);
+        --glass-shadow: rgba(0, 0, 0, 0.15);
         --text: #000000;
         --text-secondary: rgba(60, 60, 67, 0.6);
         --text-tertiary: rgba(60, 60, 67, 0.3);
+        --accent-blue: #007aff;
+        --accent-blue-bright: #007aff;
       }
     }
 
@@ -64,35 +64,13 @@
       padding: 0 16px;
       padding-top: max(env(safe-area-inset-top), 20px);
       padding-bottom: max(env(safe-area-inset-bottom), 24px);
-      background: var(--bg);
       position: relative;
-    }
-
-    /* Мягкое свечение на фоне — эффект Liquid Glass */
-    body::before {
-      content: '';
-      position: fixed;
-      top: -20%;
-      left: -20%;
-      width: 60%;
-      height: 50%;
-      background: radial-gradient(circle, rgba(10, 132, 255, 0.18), transparent 70%);
-      filter: blur(60px);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    body::after {
-      content: '';
-      position: fixed;
-      bottom: -20%;
-      right: -20%;
-      width: 60%;
-      height: 50%;
-      background: radial-gradient(circle, rgba(48, 209, 88, 0.12), transparent 70%);
-      filter: blur(60px);
-      pointer-events: none;
-      z-index: 0;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(90, 200, 250, 0.25), transparent 45%),
+        radial-gradient(circle at 85% 90%, rgba(48, 209, 88, 0.18), transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(120, 80, 255, 0.12), transparent 60%),
+        var(--bg);
+      background-attachment: fixed;
     }
 
     .app {
@@ -105,21 +83,34 @@
     /* ---------- HEADER ---------- */
     .header {
       text-align: center;
-      padding: 24px 0 20px;
+      padding: 24px 0 22px;
       animation: fadeIn 0.5s ease;
     }
 
     .header .icon-wrap {
       width: 64px;
       height: 64px;
-      margin: 0 auto 12px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, #0a84ff 0%, #30d158 100%);
+      margin: 0 auto 14px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #5ac8fa 0%, #0a84ff 50%, #30d158 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 32px;
-      box-shadow: 0 8px 24px rgba(10, 132, 255, 0.35);
+      font-size: 30px;
+      box-shadow:
+        0 10px 30px rgba(10, 132, 255, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header .icon-wrap::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent);
+      pointer-events: none;
     }
 
     .header h1 {
@@ -144,11 +135,15 @@
       font-size: 12px;
       font-weight: 600;
       margin-top: 12px;
-      background: rgba(48, 209, 88, 0.15);
-      color: var(--accent-2);
-      border: 1px solid rgba(48, 209, 88, 0.25);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      background: var(--glass-bg);
+      color: var(--accent-green);
+      border: 1px solid var(--glass-border);
+      border-top-color: var(--glass-border-top);
+      backdrop-filter: blur(30px) saturate(180%);
+      -webkit-backdrop-filter: blur(30px) saturate(180%);
+      box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
       transition: all 0.3s ease;
     }
 
@@ -163,9 +158,7 @@
     }
 
     .status-pill.offline {
-      background: rgba(255, 69, 58, 0.15);
       color: var(--danger);
-      border-color: rgba(255, 69, 58, 0.25);
     }
 
     .status-pill.offline::before {
@@ -173,31 +166,70 @@
       box-shadow: none;
     }
 
-    /* ---------- INPUT ---------- */
+    /* ============================================
+       СТЕКЛЯННАЯ НАКЛЕЙКА — INPUT CARD
+       ============================================ */
     .input-card {
-      background: var(--bg-elevated);
-      backdrop-filter: blur(30px) saturate(180%);
-      -webkit-backdrop-filter: blur(30px) saturate(180%);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 4px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+      position: relative;
+      background: var(--glass-bg);
+      backdrop-filter: blur(60px) saturate(200%);
+      -webkit-backdrop-filter: blur(60px) saturate(200%);
+      border-radius: 28px;
+      padding: 3px;
+      border: 1px solid var(--glass-border);
+      border-top-color: var(--glass-border-top);
+      box-shadow:
+        0 24px 60px -12px var(--glass-shadow),
+        0 4px 12px rgba(0, 0, 0, 0.25),
+        inset 0 1px 1px rgba(255, 255, 255, 0.18),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.25),
+        inset 1px 0 1px rgba(255, 255, 255, 0.06),
+        inset -1px 0 1px rgba(255, 255, 255, 0.06);
+      overflow: hidden;
       animation: fadeIn 0.6s ease;
     }
 
+    /* Верхняя бликовая линия — как грань стекла */
+    .input-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55) 30%, rgba(255, 255, 255, 0.55) 70%, transparent);
+      z-index: 3;
+      pointer-events: none;
+      border-radius: 2px;
+    }
+
+    /* Внутренний градиентный блик */
+    .input-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 40%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent);
+      pointer-events: none;
+      z-index: 1;
+      border-radius: 28px 28px 0 0;
+    }
+
     textarea {
+      position: relative;
+      z-index: 2;
       width: 100%;
       min-height: 200px;
       background: transparent;
       border: none;
-      padding: 16px;
+      padding: 18px;
       color: var(--text);
       font-family: 'SF Mono', ui-monospace, Menlo, monospace;
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.55;
       resize: vertical;
       outline: none;
-      border-radius: var(--radius-lg);
+      border-radius: 26px;
       letter-spacing: 0;
     }
 
@@ -205,25 +237,37 @@
       color: var(--text-tertiary);
     }
 
-    /* ---------- BUTTONS ---------- */
+    /* ============================================
+       СТЕКЛЯННЫЕ КНОПКИ
+       ============================================ */
     .btn-row {
       display: flex;
-      gap: 10px;
-      margin-top: 14px;
+      gap: 12px;
+      margin-top: 16px;
     }
 
     button {
+      position: relative;
       flex: 1;
-      padding: 16px 20px;
-      border: none;
-      border-radius: var(--radius-md);
+      padding: 17px 20px;
+      border: 1px solid var(--glass-border);
+      border-top-color: var(--glass-border-top);
+      border-radius: 20px;
       font-size: 16px;
       font-weight: 600;
       font-family: inherit;
       letter-spacing: -0.01em;
       cursor: pointer;
+      background: var(--glass-bg);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      box-shadow:
+        0 12px 32px -8px var(--glass-shadow),
+        0 2px 6px rgba(0, 0, 0, 0.2),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
       transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-                  filter 0.15s ease,
                   box-shadow 0.2s ease;
       display: flex;
       align-items: center;
@@ -231,49 +275,92 @@
       gap: 8px;
     }
 
+    /* Верхняя бликовая линия на кнопках */
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 15%;
+      right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6) 30%, rgba(255, 255, 255, 0.6) 70%, transparent);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Нижний мягкий блик внутри */
+    button::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+      pointer-events: none;
+      z-index: 1;
+      border-radius: 20px 20px 0 0;
+    }
+
     button:active {
       transform: scale(0.96);
-      filter: brightness(0.9);
+      box-shadow:
+        0 6px 16px -4px var(--glass-shadow),
+        0 1px 3px rgba(0, 0, 0, 0.2),
+        inset 0 1px 1px rgba(255, 255, 255, 0.15),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.3);
     }
 
+    /* Анализировать — синий текст на стекле */
     .btn-analyze {
-      background: var(--accent);
-      color: #ffffff;
-      box-shadow: 0 4px 16px rgba(10, 132, 255, 0.3);
+      color: var(--accent-blue);
+      text-shadow: 0 0 24px rgba(90, 200, 250, 0.5);
     }
 
+    /* Очистить — обычный текст */
     .btn-clear {
-      background: var(--bg-elevated-2);
       color: var(--text);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
     }
 
+    /* Обновить базу — синий текст, на всю ширину */
     .btn-update {
       width: 100%;
-      margin-top: 10px;
-      padding: 14px;
-      background: var(--bg-elevated);
-      color: var(--accent);
-      border: 1px solid var(--border);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      margin-top: 12px;
+      padding: 15px;
       font-size: 15px;
+      color: var(--accent-blue);
+      text-shadow: 0 0 20px rgba(90, 200, 250, 0.4);
     }
 
-    /* ---------- RESULT ---------- */
+    /* ============================================
+       РЕЗУЛЬТАТ
+       ============================================ */
     .result {
-      margin-top: 20px;
+      margin-top: 22px;
       padding: 20px;
-      background: var(--bg-elevated);
-      backdrop-filter: blur(30px) saturate(180%);
-      -webkit-backdrop-filter: blur(30px) saturate(180%);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      background: var(--glass-bg);
+      backdrop-filter: blur(60px) saturate(200%);
+      -webkit-backdrop-filter: blur(60px) saturate(200%);
+      border: 1px solid var(--glass-border);
+      border-top-color: var(--glass-border-top);
+      border-radius: 24px;
+      box-shadow:
+        0 24px 60px -12px var(--glass-shadow),
+        inset 0 1px 1px rgba(255, 255, 255, 0.15),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.25);
       display: none;
-      animation: slideUp 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+      position: relative;
+      overflow: hidden;
+      animation: slideUp 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .result::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 15%;
+      right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5) 30%, rgba(255, 255, 255, 0.5) 70%, transparent);
+      pointer-events: none;
     }
 
     .result.show { display: block; }
@@ -286,6 +373,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      color: var(--accent-blue);
     }
 
     .result.error h2 { color: var(--danger); }
@@ -293,7 +381,7 @@
     /* ---------- FIELDS ---------- */
     .field {
       padding: 14px 0;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--glass-border);
     }
 
     .field:last-child {
@@ -301,9 +389,7 @@
       padding-bottom: 0;
     }
 
-    .field:first-of-type {
-      padding-top: 0;
-    }
+    .field:first-of-type { padding-top: 0; }
 
     .field-label {
       font-size: 11px;
@@ -323,25 +409,26 @@
     }
 
     .field-value.highlight {
-      color: var(--accent);
+      color: var(--accent-blue);
       font-weight: 600;
     }
 
-    /* ---------- PROBABLE CARD ---------- */
+    /* ---------- PROBABLE ---------- */
     .probable {
-      background: var(--bg-elevated-2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
+      background: var(--glass-bg-light);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
       padding: 14px;
       margin-top: 10px;
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
 
     .probable .label {
       font-size: 11px;
       font-weight: 700;
-      color: var(--accent-2);
+      color: var(--accent-green);
       text-transform: uppercase;
       letter-spacing: 0.6px;
       margin-bottom: 8px;
@@ -356,17 +443,18 @@
 
     /* ---------- MEASUREMENTS ---------- */
     .measure-box {
-      background: rgba(10, 132, 255, 0.08);
-      border: 1px solid rgba(10, 132, 255, 0.2);
-      border-radius: var(--radius-md);
+      background: rgba(90, 200, 250, 0.08);
+      border: 1px solid rgba(90, 200, 250, 0.22);
+      border-radius: 18px;
       padding: 16px;
       margin-top: 14px;
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
 
     .measure-title {
-      color: var(--accent);
+      color: var(--accent-blue);
       font-weight: 700;
       font-size: 14px;
       margin-bottom: 12px;
@@ -377,22 +465,22 @@
     }
 
     .measure-item {
-      background: var(--bg-elevated-2);
-      border-radius: var(--radius-sm);
+      background: var(--glass-bg);
+      border-radius: 12px;
       padding: 10px 12px;
       margin-bottom: 8px;
-      border-left: 3px solid var(--accent);
+      border-left: 3px solid var(--accent-blue);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
     .measure-item:last-child { margin-bottom: 0; }
 
     .measure-key {
-      color: var(--accent);
+      color: var(--accent-blue);
       font-weight: 600;
       font-size: 13px;
       margin-bottom: 6px;
       font-family: 'SF Mono', ui-monospace, monospace;
-      letter-spacing: -0.01em;
     }
 
     .measure-row {
@@ -434,24 +522,6 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
     }
-
-    /* ---------- DIVIDER для паяльных ---------- */
-    .board-divider {
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 2px solid rgba(255, 69, 58, 0.3);
-    }
-
-    .board-divider .title {
-      color: var(--danger);
-      font-weight: 700;
-      font-size: 13px;
-      margin-bottom: 12px;
-      letter-spacing: 0.3px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
   </style>
 </head>
 <body>
@@ -477,7 +547,7 @@
     <div class="result" id="result"></div>
 
     <div class="footer">
-      Panic Analyzer v4.1 · iOS Style
+      Panic Analyzer v4.1 · Liquid Glass
     </div>
   </div>
 
