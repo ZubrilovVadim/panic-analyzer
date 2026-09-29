@@ -283,7 +283,6 @@ function analyze() {
 
   html += getMeasurements(modelName, i2cCodes);
 
-  // Маленькая круглая кнопка «Поделиться» с иконкой Apple
   html += '<div class="share-wrap">' +
             '<button class="btn-share-icon" onclick="shareResult()" aria-label="Поделиться">' +
               '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
@@ -310,16 +309,15 @@ async function shareResult() {
     return;
   }
 
+  // На iOS убираем title, чтобы всё ушло в text одним сообщением
   if (navigator.share) {
     try {
-      await navigator.share({
-        title: 'Panic Analyzer',
-        text: text
-      });
+      await navigator.share({ text: text });
     } catch (e) {}
     return;
   }
 
+  // Fallback: копируем в буфер
   try {
     await navigator.clipboard.writeText(text);
     alert('✅ Скопировано в буфер обмена');
