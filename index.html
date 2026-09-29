@@ -50,8 +50,11 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    html, body {
+    html {
       background: var(--bg);
+    }
+
+    html, body {
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', sans-serif;
       min-height: 100vh;
@@ -66,11 +69,13 @@
       padding-bottom: max(env(safe-area-inset-bottom), 24px);
       position: relative;
       background:
-        radial-gradient(circle at 15% 10%, rgba(90, 200, 250, 0.25), transparent 45%),
-        radial-gradient(circle at 85% 90%, rgba(48, 209, 88, 0.18), transparent 45%),
-        radial-gradient(circle at 50% 50%, rgba(120, 80, 255, 0.12), transparent 60%),
+        radial-gradient(circle at 15% 5%, rgba(90, 200, 250, 0.22), transparent 40%),
+        radial-gradient(circle at 50% 45%, rgba(120, 80, 255, 0.12), transparent 55%),
         var(--bg);
-      background-attachment: fixed;
+      background-repeat: no-repeat;
+      background-attachment: scroll;
+      min-height: 100vh;
+      min-height: 100dvh;
     }
 
     .app {
