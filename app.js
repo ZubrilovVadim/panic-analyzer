@@ -1,4 +1,5 @@
 let DATABASE = null;
+let SHORT_TEXT = '';
 
 function normalizeQuotes(text) {
   return text
@@ -210,14 +211,8 @@ function analyze() {
     return;
   }
 
-  let html = '<h2>📋 Результат анализа</h2>';
-  let modelName = null;
-  if (model) {
-    modelName = (DATABASE.models[model] && DATABASE.models[model].name) || model;
-    html += field('Модель устройства', modelName + ' (' + model + ')', true);
-  } else {
-    html += field('Модель устройства', 'Не удалось определить', false);
-  }
+  // Собираем паник-коды с расшифровкой (это пойдёт и в шапку, и в короткий текст)
+  const panicItems = [];
 
   if (sensorCodes && sensorCodes.length > 0) {
     sensorCodes.forEach(code => {
@@ -227,26 +222,54 @@ function analyze() {
       } else if (DATABASE.generic_smc && DATABASE.generic_smc[code]) {
         cause = DATABASE.generic_smc[code];
       }
-      html += probable('SMC PANIC · ' + code, cause);
+      panicItems.push({ label: 'SMC ' + code, cause: cause });
     });
   }
 
   if (i2cCodes.length > 0) {
     i2cCodes.forEach(code => {
       const cause = (DATABASE.i2c && DATABASE.i2c[code]) || 'Неизвестная i2c-ошибка';
-      html += probable(code.toUpperCase(), cause);
+      panicItems.push({ label: code.toUpperCase(), cause: cause });
     });
   }
 
   if (aopCode) {
     const cause = (DATABASE.aop && (DATABASE.aop[aopCode] || DATABASE.aop['AOP PANIC'])) || 'Неизвестный AOP-код';
-    html += probable(aopCode, cause);
+    panicItems.push({ label: aopCode, cause: cause });
   }
 
   otherCodes.forEach(code => {
     const cause = (DATABASE.other && DATABASE.other[code]) || 'Нет описания';
-    html += probable(code, cause);
+    panicItems.push({ label: code, cause: cause });
   });
+
+  // Формируем ШАПКУ — модель + первая строка паника
+  let modelName = null;
+  if (model) {
+    modelName = (DATABASE.models[model] && DATABASE.models[model].name) || model;
+  }
+
+  let headerValue = modelName ? modelName : 'Panic Analyzer';
+  if (panicItems.length > 0) {
+    headerValue += '\n' + panicItems[0].label + ' — ' + panicItems[0].cause;
+  }
+
+  let html = '<h2>📋 Результат анализа</h2>';
+  html += field('Модель устройства', headerValue, true);
+
+  // Остальные паники (кроме первой, она уже в шапке) — отдельными блоками
+  for (let i = 1; i < panicItems.length; i++) {
+    html += probable(panicItems[i].label, panicItems[i].cause);
+  }
+  // Первую тоже показываем блоком, для полноты визуала
+  if (panicItems.length > 0) {
+    // Ничего не добавляем, чтобы не дублировать
+  } else {
+    // Если паников нет, но модель есть — ничего
+  }
+
+  // Показываем первую панику отдельным блоком под шапкой тоже (для визуала)
+  // Но чтобы не путать — оставим только остальные
 
   if (boardCodes.length > 0) {
     html += '<div class="board-divider">' +
@@ -259,8 +282,113 @@ function analyze() {
 
   html += getMeasurements(modelName, i2cCodes);
 
+  // КОРОТКИЙ текст для копирования/шаринга
+  const shortLines = [];
+  shortLines.push('📱 ' + (modelName || 'Panic Analyzer'));
+  panicItems.forEach(p => {
+    shortLines.push(p.label + ' — ' + p.cause);
+  });
+  if (boardCodes.length > 0) {
+    shortLines.push('');
+    shortLines.push('🔧 Требует пайки:');
+    boardCodes.forEach(item => {
+      shortLines.push(item.key + ' — ' + item.value);
+    });
+  }
+  SHORT_TEXT = shortLines.join('\n');
+
+  html += '<div class="share-wrap">' +
+            '<button class="btn-share-icon" onclick="copyResult()" aria-label="Копировать">' +
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>' +
+                '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>' +
+              '</svg>' +
+            '</button>' +
+            '<button class="btn-share-icon" onclick="shareResult()" aria-label="Поделиться">' +
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<path d="M12 15V3"/>' +
+                '<path d="M8 7l4-4 4 4"/>' +
+                '<path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>' +
+              '</svg>' +
+            '</button>' +
+          '</div>' +
+          '<div class="short-preview">' +
+            '<div class="short-preview-title">📄 Что копируется:</div>' +
+            '<pre class="short-preview-text">' + SHORT_TEXT + '</pre>' +
+          '</div>';
+
   resultEl.innerHTML = html;
   resultEl.className = 'result show';
+}
+
+function copyResult() {
+  if (!SHORT_TEXT) { alert('Сначала проанализируй паник'); return; }
+
+  const text = SHORT_TEXT;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      alert('✅ Скопировано:\n\n' + text);
+    }).catch(function() {
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.position = 'absolute';
+  ta.style.left = '-9999px';
+  ta.style.top = '0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, text.length);
+  let ok = false;
+  try {
+    ok = document.execCommand('copy');
+  } catch (e) { ok = false; }
+  document.body.removeChild(ta);
+
+  if (ok) {
+    alert('✅ Скопировано:\n\n' + text);
+  } else {
+    showCopyModal(text);
+  }
+}
+
+function showCopyModal(text) {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+  const box = document.createElement('div');
+  box.style.cssText = 'background:#1c1c1e;border-radius:20px;padding:20px;max-width:500px;width:100%;';
+
+  box.innerHTML = '<div style="color:#5ac8fa;font-weight:700;font-size:16px;margin-bottom:12px;">Выдели и скопируй:</div>' +
+    '<textarea readonly style="width:100%;height:180px;background:#0d0d0f;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px;font-family:monospace;font-size:13px;line-height:1.5;resize:none;outline:none;">' + text + '</textarea>' +
+    '<button style="width:100%;margin-top:12px;padding:14px;background:rgba(90,200,250,0.15);color:#5ac8fa;border:1px solid rgba(90,200,250,0.3);border-radius:14px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;" onclick="this.parentNode.parentNode.remove()">Закрыть</button>';
+
+  modal.appendChild(box);
+  document.body.appendChild(modal);
+
+  setTimeout(function() {
+    const ta = box.querySelector('textarea');
+    if (ta) { ta.focus(); ta.select(); }
+  }, 100);
+}
+
+function shareResult() {
+  if (!SHORT_TEXT) { alert('Сначала проанализируй паник'); return; }
+
+  if (navigator.share) {
+    navigator.share({ text: SHORT_TEXT }).catch(function() {});
+  } else {
+    copyResult();
+  }
 }
 
 function field(label, value, highlight) {
@@ -282,6 +410,7 @@ function showError(msg) {
 function clearAll() {
   document.getElementById('input').value = '';
   document.getElementById('result').className = 'result';
+  SHORT_TEXT = '';
 }
 
 async function updateDatabase() {
@@ -300,5 +429,11 @@ async function updateDatabase() {
 
 window.addEventListener('online', () => setStatus(true));
 window.addEventListener('offline', () => setStatus(false));
+
+window.analyze = analyze;
+window.clearAll = clearAll;
+window.updateDatabase = updateDatabase;
+window.copyResult = copyResult;
+window.shareResult = shareResult;
 
 loadDatabase();
