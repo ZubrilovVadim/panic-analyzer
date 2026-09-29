@@ -216,16 +216,17 @@ function analyze() {
     return;
   }
 
-  shareTextParts = ['📱 Panic Analyzer'];
+  shareTextParts = [];
 
   let html = '<h2>📋 Результат анализа</h2>';
   let modelName = null;
   if (model) {
     modelName = (DATABASE.models[model] && DATABASE.models[model].name) || model;
     html += field('Модель устройства', modelName + ' (' + model + ')', true);
-    addShareLine('Модель: ' + modelName);
+    addShareLine('📱 ' + modelName);
   } else {
     html += field('Модель устройства', 'Не удалось определить (в логе нет строки "product")', false);
+    addShareLine('📱 Panic Analyzer');
   }
 
   if (sensorCodes && sensorCodes.length > 0) {
@@ -237,9 +238,7 @@ function analyze() {
         cause = DATABASE.generic_smc[code];
       }
       html += probable('SMC PANIC · ' + code, cause);
-      addShareLine('');
-      addShareLine('SMC PANIC · ' + code);
-      addShareLine(cause);
+      addShareLine('SMC PANIC · ' + code + ' — ' + cause);
     });
   }
 
@@ -247,36 +246,30 @@ function analyze() {
     i2cCodes.forEach(code => {
       const cause = (DATABASE.i2c && DATABASE.i2c[code]) || 'Неизвестная i2c-ошибка';
       html += probable(code.toUpperCase(), cause);
-      addShareLine('');
-      addShareLine(code.toUpperCase());
-      addShareLine(cause);
+      addShareLine(code.toUpperCase() + ' — ' + cause);
     });
   }
 
   if (aopCode) {
     const cause = (DATABASE.aop && (DATABASE.aop[aopCode] || DATABASE.aop['AOP PANIC'])) || 'Неизвестный AOP-код';
     html += probable(aopCode, cause);
-    addShareLine('');
-    addShareLine(aopCode);
-    addShareLine(cause);
+    addShareLine(aopCode + ' — ' + cause);
   }
 
   otherCodes.forEach(code => {
     const cause = (DATABASE.other && DATABASE.other[code]) || 'Нет описания';
     html += probable(code, cause);
-    addShareLine('');
-    addShareLine(code);
-    addShareLine(cause);
+    addShareLine(code + ' — ' + cause);
   });
 
   if (boardCodes.length > 0) {
     html += '<div class="board-divider">' +
             '<div class="title">🔧 ТРЕБУЕТ ПАЙКИ / ПЛАТА</div>';
     addShareLine('');
-    addShareLine('🔧 ТРЕБУЕТ ПАЙКИ / ПЛАТА:');
+    addShareLine('🔧 Требует пайки:');
     boardCodes.forEach(item => {
       html += probable(item.category + ' · ' + item.key, item.value);
-      addShareLine('• ' + item.key + ': ' + item.value);
+      addShareLine('• ' + item.key + ' — ' + item.value);
     });
     html += '</div>';
   }
@@ -284,8 +277,14 @@ function analyze() {
   html += getMeasurements(modelName, i2cCodes);
 
   html += '<div class="share-wrap">' +
+            '<button class="btn-share-icon" onclick="copyResult()" aria-label="Копировать">' +
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>' +
+                '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>' +
+              '</svg>' +
+            '</button>' +
             '<button class="btn-share-icon" onclick="shareResult()" aria-label="Поделиться">' +
-              '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
                 '<path d="M12 15V3"/>' +
                 '<path d="M8 7l4-4 4 4"/>' +
                 '<path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>' +
@@ -300,30 +299,44 @@ function analyze() {
   resultEl.className = 'result show';
 }
 
+async function copyResult() {
+  const resultEl = document.getElementById('result');
+  const text = resultEl.getAttribute('data-share-text') || '';
+  if (!text) { alert('Сначала проанализируй паник'); return; }
+
+  try {
+    await navigator.clipboard.writeText(text);
+    alert('✅ Скопировано в буфер обмена\n\nМожно вставить в любое приложение');
+  } catch (e) {
+    // Fallback для старых браузеров
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      alert('✅ Скопировано в буфер обмена');
+    } catch (err) {
+      alert('❌ Не удалось скопировать');
+    }
+    document.body.removeChild(ta);
+  }
+}
+
 async function shareResult() {
   const resultEl = document.getElementById('result');
   const text = resultEl.getAttribute('data-share-text') || '';
+  if (!text) { alert('Сначала проанализируй паник'); return; }
 
-  if (!text) {
-    alert('Сначала проанализируй паник');
-    return;
-  }
-
-  // На iOS убираем title, чтобы всё ушло в text одним сообщением
   if (navigator.share) {
     try {
       await navigator.share({ text: text });
     } catch (e) {}
     return;
   }
-
-  // Fallback: копируем в буфер
-  try {
-    await navigator.clipboard.writeText(text);
-    alert('✅ Скопировано в буфер обмена');
-  } catch (e) {
-    alert('❌ Не удалось скопировать');
-  }
+  copyResult();
 }
 
 function field(label, value, highlight) {
