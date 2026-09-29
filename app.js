@@ -188,7 +188,6 @@ function renderMeasurement(key, data) {
   return html;
 }
 
-// --- НОВОЕ: формирование текста для «Поделиться» ---
 let shareTextParts = [];
 
 function addShareLine(line) {
@@ -284,16 +283,24 @@ function analyze() {
 
   html += getMeasurements(modelName, i2cCodes);
 
-  // Кнопка «Поделиться»
+  // Маленькая круглая кнопка «Поделиться» с иконкой Apple
+  html += '<div class="share-wrap">' +
+            '<button class="btn-share-icon" onclick="shareResult()" aria-label="Поделиться">' +
+              '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<path d="M12 15V3"/>' +
+                '<path d="M8 7l4-4 4 4"/>' +
+                '<path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>' +
+              '</svg>' +
+            '</button>' +
+          '</div>';
+
   const shareText = shareTextParts.join('\n');
-  html += '<button class="btn-share" onclick="shareResult()">📤 Поделиться результатом</button>';
   resultEl.setAttribute('data-share-text', shareText);
 
   resultEl.innerHTML = html;
   resultEl.className = 'result show';
 }
 
-// --- НОВОЕ: функция «Поделиться» ---
 async function shareResult() {
   const resultEl = document.getElementById('result');
   const text = resultEl.getAttribute('data-share-text') || '';
@@ -303,20 +310,16 @@ async function shareResult() {
     return;
   }
 
-  // iOS / Android — системное меню
   if (navigator.share) {
     try {
       await navigator.share({
         title: 'Panic Analyzer',
         text: text
       });
-    } catch (e) {
-      // Пользователь отменил — ничего не делаем
-    }
+    } catch (e) {}
     return;
   }
 
-  // Fallback: копируем в буфер
   try {
     await navigator.clipboard.writeText(text);
     alert('✅ Скопировано в буфер обмена');
