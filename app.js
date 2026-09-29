@@ -43,7 +43,6 @@ function extractModel(text) {
   return m ? m[1] : null;
 }
 
-// ИСПРАВЛЕНО: теперь ловит любой диапазон (0-3, 0-6) и любое кол-во значений
 function extractSensorArray(text) {
   const m = text.match(/sensor array\s+\d+\s*-\s*\d+\s+is\s+([^\n\\]+)/i);
   if (!m) return null;
@@ -52,7 +51,6 @@ function extractSensorArray(text) {
   values.forEach(v => {
     let clean = v.replace(/^0x/i, '').toLowerCase();
     if (clean && clean !== '0') {
-      // Если это чистое десятичное число (без 0x), конвертируем в hex
       if (!/^0x/i.test(v) && /^\d+$/.test(clean)) {
         clean = parseInt(clean, 10).toString(16);
       }
@@ -190,6 +188,13 @@ function renderMeasurement(key, data) {
   return html;
 }
 
+// --- НОВОЕ: формирование текста для «Поделиться» ---
+let shareTextParts = [];
+
+function addShareLine(line) {
+  shareTextParts.push(line);
+}
+
 function analyze() {
   const input = document.getElementById('input').value.trim();
   const resultEl = document.getElementById('result');
@@ -212,11 +217,14 @@ function analyze() {
     return;
   }
 
+  shareTextParts = ['📱 Panic Analyzer'];
+
   let html = '<h2>📋 Результат анализа</h2>';
   let modelName = null;
   if (model) {
     modelName = (DATABASE.models[model] && DATABASE.models[model].name) || model;
     html += field('Модель устройства', modelName + ' (' + model + ')', true);
+    addShareLine('Модель: ' + modelName);
   } else {
     html += field('Модель устройства', 'Не удалось определить (в логе нет строки "product")', false);
   }
@@ -230,6 +238,9 @@ function analyze() {
         cause = DATABASE.generic_smc[code];
       }
       html += probable('SMC PANIC · ' + code, cause);
+      addShareLine('');
+      addShareLine('SMC PANIC · ' + code);
+      addShareLine(cause);
     });
   }
 
@@ -237,31 +248,81 @@ function analyze() {
     i2cCodes.forEach(code => {
       const cause = (DATABASE.i2c && DATABASE.i2c[code]) || 'Неизвестная i2c-ошибка';
       html += probable(code.toUpperCase(), cause);
+      addShareLine('');
+      addShareLine(code.toUpperCase());
+      addShareLine(cause);
     });
   }
 
   if (aopCode) {
     const cause = (DATABASE.aop && (DATABASE.aop[aopCode] || DATABASE.aop['AOP PANIC'])) || 'Неизвестный AOP-код';
     html += probable(aopCode, cause);
+    addShareLine('');
+    addShareLine(aopCode);
+    addShareLine(cause);
   }
 
   otherCodes.forEach(code => {
     const cause = (DATABASE.other && DATABASE.other[code]) || 'Нет описания';
     html += probable(code, cause);
+    addShareLine('');
+    addShareLine(code);
+    addShareLine(cause);
   });
 
   if (boardCodes.length > 0) {
-    html += '<div style="margin-top:16px;padding-top:12px;border-top:2px solid #ff6b6b;">' +
-            '<div style="color:#ff6b6b;font-weight:700;font-size:14px;margin-bottom:10px;">🔧 ТРЕБУЕТ ПАЙКИ / ПЛАТА</div>';
+    html += '<div class="board-divider">' +
+            '<div class="title">🔧 ТРЕБУЕТ ПАЙКИ / ПЛАТА</div>';
+    addShareLine('');
+    addShareLine('🔧 ТРЕБУЕТ ПАЙКИ / ПЛАТА:');
     boardCodes.forEach(item => {
       html += probable(item.category + ' · ' + item.key, item.value);
+      addShareLine('• ' + item.key + ': ' + item.value);
     });
     html += '</div>';
   }
 
   html += getMeasurements(modelName, i2cCodes);
+
+  // Кнопка «Поделиться»
+  const shareText = shareTextParts.join('\n');
+  html += '<button class="btn-share" onclick="shareResult()">📤 Поделиться результатом</button>';
+  resultEl.setAttribute('data-share-text', shareText);
+
   resultEl.innerHTML = html;
   resultEl.className = 'result show';
+}
+
+// --- НОВОЕ: функция «Поделиться» ---
+async function shareResult() {
+  const resultEl = document.getElementById('result');
+  const text = resultEl.getAttribute('data-share-text') || '';
+
+  if (!text) {
+    alert('Сначала проанализируй паник');
+    return;
+  }
+
+  // iOS / Android — системное меню
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Panic Analyzer',
+        text: text
+      });
+    } catch (e) {
+      // Пользователь отменил — ничего не делаем
+    }
+    return;
+  }
+
+  // Fallback: копируем в буфер
+  try {
+    await navigator.clipboard.writeText(text);
+    alert('✅ Скопировано в буфер обмена');
+  } catch (e) {
+    alert('❌ Не удалось скопировать');
+  }
 }
 
 function field(label, value, highlight) {
