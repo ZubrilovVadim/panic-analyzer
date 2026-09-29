@@ -211,7 +211,7 @@ function analyze() {
     return;
   }
 
-  // Собираем паник-коды с расшифровкой (это пойдёт и в шапку, и в короткий текст)
+  // Собираем все паник-коды
   const panicItems = [];
 
   if (sensorCodes && sensorCodes.length > 0) {
@@ -225,51 +225,49 @@ function analyze() {
       panicItems.push({ label: 'SMC ' + code, cause: cause });
     });
   }
-
   if (i2cCodes.length > 0) {
     i2cCodes.forEach(code => {
       const cause = (DATABASE.i2c && DATABASE.i2c[code]) || 'Неизвестная i2c-ошибка';
       panicItems.push({ label: code.toUpperCase(), cause: cause });
     });
   }
-
   if (aopCode) {
     const cause = (DATABASE.aop && (DATABASE.aop[aopCode] || DATABASE.aop['AOP PANIC'])) || 'Неизвестный AOP-код';
     panicItems.push({ label: aopCode, cause: cause });
   }
-
   otherCodes.forEach(code => {
     const cause = (DATABASE.other && DATABASE.other[code]) || 'Нет описания';
     panicItems.push({ label: code, cause: cause });
   });
 
-  // Формируем ШАПКУ — модель + первая строка паника
   let modelName = null;
   if (model) {
     modelName = (DATABASE.models[model] && DATABASE.models[model].name) || model;
   }
 
-  let headerValue = modelName ? modelName : 'Panic Analyzer';
-  if (panicItems.length > 0) {
-    headerValue += '\n' + panicItems[0].label + ' — ' + panicItems[0].cause;
+  // Собираем короткий текст (это пойдёт в шапку и в превью)
+  const shortLines = [];
+  shortLines.push('📱 ' + (modelName || 'Panic Analyzer'));
+  panicItems.forEach(p => {
+    shortLines.push(p.label + ' — ' + p.cause);
+  });
+  if (boardCodes.length > 0) {
+    shortLines.push('🔧 Требует пайки:');
+    boardCodes.forEach(item => {
+      shortLines.push(item.key + ' — ' + item.value);
+    });
   }
+  SHORT_TEXT = shortLines.join('\n');
 
+  // ШАПКА — кладём ВЕСЬ короткий текст целиком
   let html = '<h2>📋 Результат анализа</h2>';
-  html += field('Модель устройства', headerValue, true);
+  html += '<div class="field"><div class="field-label">Результат</div>' +
+          '<div class="field-value highlight result-header-text">' + SHORT_TEXT + '</div></div>';
 
-  // Остальные паники (кроме первой, она уже в шапке) — отдельными блоками
-  for (let i = 1; i < panicItems.length; i++) {
-    html += probable(panicItems[i].label, panicItems[i].cause);
-  }
-  // Первую тоже показываем блоком, для полноты визуала
-  if (panicItems.length > 0) {
-    // Ничего не добавляем, чтобы не дублировать
-  } else {
-    // Если паников нет, но модель есть — ничего
-  }
-
-  // Показываем первую панику отдельным блоком под шапкой тоже (для визуала)
-  // Но чтобы не путать — оставим только остальные
+  // Детальные паник-блоки (для визуала)
+  panicItems.forEach(p => {
+    html += probable(p.label, p.cause);
+  });
 
   if (boardCodes.length > 0) {
     html += '<div class="board-divider">' +
@@ -281,21 +279,6 @@ function analyze() {
   }
 
   html += getMeasurements(modelName, i2cCodes);
-
-  // КОРОТКИЙ текст для копирования/шаринга
-  const shortLines = [];
-  shortLines.push('📱 ' + (modelName || 'Panic Analyzer'));
-  panicItems.forEach(p => {
-    shortLines.push(p.label + ' — ' + p.cause);
-  });
-  if (boardCodes.length > 0) {
-    shortLines.push('');
-    shortLines.push('🔧 Требует пайки:');
-    boardCodes.forEach(item => {
-      shortLines.push(item.key + ' — ' + item.value);
-    });
-  }
-  SHORT_TEXT = shortLines.join('\n');
 
   html += '<div class="share-wrap">' +
             '<button class="btn-share-icon" onclick="copyResult()" aria-label="Копировать">' +
@@ -311,10 +294,6 @@ function analyze() {
                 '<path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>' +
               '</svg>' +
             '</button>' +
-          '</div>' +
-          '<div class="short-preview">' +
-            '<div class="short-preview-title">📄 Что копируется:</div>' +
-            '<pre class="short-preview-text">' + SHORT_TEXT + '</pre>' +
           '</div>';
 
   resultEl.innerHTML = html;
@@ -323,7 +302,6 @@ function analyze() {
 
 function copyResult() {
   if (!SHORT_TEXT) { alert('Сначала проанализируй паник'); return; }
-
   const text = SHORT_TEXT;
 
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -343,47 +321,19 @@ function fallbackCopy(text) {
   ta.setAttribute('readonly', '');
   ta.style.position = 'absolute';
   ta.style.left = '-9999px';
-  ta.style.top = '0';
   document.body.appendChild(ta);
   ta.focus();
   ta.select();
   ta.setSelectionRange(0, text.length);
   let ok = false;
-  try {
-    ok = document.execCommand('copy');
-  } catch (e) { ok = false; }
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
   document.body.removeChild(ta);
-
-  if (ok) {
-    alert('✅ Скопировано:\n\n' + text);
-  } else {
-    showCopyModal(text);
-  }
-}
-
-function showCopyModal(text) {
-  const modal = document.createElement('div');
-  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-
-  const box = document.createElement('div');
-  box.style.cssText = 'background:#1c1c1e;border-radius:20px;padding:20px;max-width:500px;width:100%;';
-
-  box.innerHTML = '<div style="color:#5ac8fa;font-weight:700;font-size:16px;margin-bottom:12px;">Выдели и скопируй:</div>' +
-    '<textarea readonly style="width:100%;height:180px;background:#0d0d0f;color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:12px;padding:12px;font-family:monospace;font-size:13px;line-height:1.5;resize:none;outline:none;">' + text + '</textarea>' +
-    '<button style="width:100%;margin-top:12px;padding:14px;background:rgba(90,200,250,0.15);color:#5ac8fa;border:1px solid rgba(90,200,250,0.3);border-radius:14px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;" onclick="this.parentNode.parentNode.remove()">Закрыть</button>';
-
-  modal.appendChild(box);
-  document.body.appendChild(modal);
-
-  setTimeout(function() {
-    const ta = box.querySelector('textarea');
-    if (ta) { ta.focus(); ta.select(); }
-  }, 100);
+  if (ok) alert('✅ Скопировано:\n\n' + text);
+  else alert('Не удалось скопировать. Скопируй вручную:\n\n' + text);
 }
 
 function shareResult() {
   if (!SHORT_TEXT) { alert('Сначала проанализируй паник'); return; }
-
   if (navigator.share) {
     navigator.share({ text: SHORT_TEXT }).catch(function() {});
   } else {
