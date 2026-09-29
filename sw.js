@@ -1,4 +1,4 @@
-const CACHE_NAME = 'panic-analyzer-v10';
+const CACHE_NAME = 'panic-analyzer-v13';
 const FILES_TO_CACHE = [
   './',
   './index.html',
