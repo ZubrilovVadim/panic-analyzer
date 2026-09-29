@@ -50,9 +50,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    html {
-      background: var(--bg);
-    }
+    html { background: var(--bg); }
 
     html, body {
       color: var(--text);
@@ -162,18 +160,10 @@
       animation: pulse 2s infinite;
     }
 
-    .status-pill.offline {
-      color: var(--danger);
-    }
+    .status-pill.offline { color: var(--danger); }
+    .status-pill.offline::before { animation: none; box-shadow: none; }
 
-    .status-pill.offline::before {
-      animation: none;
-      box-shadow: none;
-    }
-
-    /* ============================================
-       СТЕКЛЯННАЯ НАКЛЕЙКА — INPUT CARD
-       ============================================ */
+    /* ---------- INPUT CARD ---------- */
     .input-card {
       position: relative;
       background: var(--glass-bg);
@@ -197,9 +187,7 @@
     .input-card::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 10%;
-      right: 10%;
+      top: 0; left: 10%; right: 10%;
       height: 1px;
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55) 30%, rgba(255, 255, 255, 0.55) 70%, transparent);
       z-index: 3;
@@ -236,18 +224,10 @@
       letter-spacing: 0;
     }
 
-    textarea::placeholder {
-      color: var(--text-tertiary);
-    }
+    textarea::placeholder { color: var(--text-tertiary); }
 
-    /* ============================================
-       СТЕКЛЯННЫЕ КНОПКИ
-       ============================================ */
-    .btn-row {
-      display: flex;
-      gap: 12px;
-      margin-top: 16px;
-    }
+    /* ---------- BUTTONS ---------- */
+    .btn-row { display: flex; gap: 12px; margin-top: 16px; }
 
     button {
       position: relative;
@@ -270,8 +250,7 @@
         inset 0 1px 1px rgba(255, 255, 255, 0.2),
         inset 0 -1px 1px rgba(0, 0, 0, 0.25);
       overflow: hidden;
-      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-                  box-shadow 0.2s ease;
+      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -281,9 +260,7 @@
     button::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 15%;
-      right: 15%;
+      top: 0; left: 15%; right: 15%;
       height: 1px;
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6) 30%, rgba(255, 255, 255, 0.6) 70%, transparent);
       pointer-events: none;
@@ -310,14 +287,8 @@
         inset 0 -1px 1px rgba(0, 0, 0, 0.3);
     }
 
-    .btn-analyze {
-      color: var(--accent-blue);
-      text-shadow: 0 0 24px rgba(90, 200, 250, 0.5);
-    }
-
-    .btn-clear {
-      color: var(--text);
-    }
+    .btn-analyze { color: var(--accent-blue); text-shadow: 0 0 24px rgba(90, 200, 250, 0.5); }
+    .btn-clear { color: var(--text); }
 
     .btn-update {
       width: 100%;
@@ -328,9 +299,7 @@
       text-shadow: 0 0 20px rgba(90, 200, 250, 0.4);
     }
 
-    /* ============================================
-       РЕЗУЛЬТАТ
-       ============================================ */
+    /* ---------- RESULT ---------- */
     .result {
       margin-top: 22px;
       padding: 20px;
@@ -353,9 +322,7 @@
     .result::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 15%;
-      right: 15%;
+      top: 0; left: 15%; right: 15%;
       height: 1px;
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5) 30%, rgba(255, 255, 255, 0.5) 70%, transparent);
       pointer-events: none;
@@ -382,11 +349,7 @@
       border-bottom: 1px solid var(--glass-border);
     }
 
-    .field:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-
+    .field:last-child { border-bottom: none; padding-bottom: 0; }
     .field:first-of-type { padding-top: 0; }
 
     .field-label {
@@ -406,10 +369,7 @@
       letter-spacing: -0.01em;
     }
 
-    .field-value.highlight {
-      color: var(--accent-blue);
-      font-weight: 600;
-    }
+    .field-value.highlight { color: var(--accent-blue); font-weight: 600; }
 
     /* ---------- PROBABLE ---------- */
     .probable {
@@ -490,10 +450,7 @@
 
     .measure-row:last-child { margin-bottom: 0; }
 
-    .measure-row b {
-      color: var(--text-secondary);
-      font-weight: 500;
-    }
+    .measure-row b { color: var(--text-secondary); font-weight: 500; }
 
     /* ---------- DIVIDER для паяльных ---------- */
     .board-divider {
@@ -513,19 +470,30 @@
       gap: 6px;
     }
 
-    /* ---------- SHARE BUTTON ---------- */
-    .btn-share {
-      width: 100%;
-      margin-top: 18px;
-      padding: 15px;
-      font-size: 15px;
-      font-weight: 600;
+    /* ============================================
+       МАЛЕНЬКАЯ КРУГЛАЯ КНОПКА «ПОДЕЛИТЬСЯ»
+       ============================================ */
+    .share-wrap {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 28px;
+      padding-top: 8px;
+      padding-bottom: 4px;
+    }
+
+    .btn-share-icon {
+      flex: none;
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       color: var(--accent-blue);
-      text-shadow: 0 0 20px rgba(90, 200, 250, 0.4);
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
       border-top-color: var(--glass-border-top);
-      border-radius: 18px;
       backdrop-filter: blur(40px) saturate(180%);
       -webkit-backdrop-filter: blur(40px) saturate(180%);
       box-shadow:
@@ -535,29 +503,21 @@
         inset 0 -1px 1px rgba(0, 0, 0, 0.25);
       position: relative;
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
       cursor: pointer;
-      font-family: inherit;
-      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-                  box-shadow 0.2s ease;
+      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
     }
 
-    .btn-share::before {
+    .btn-share-icon::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 15%;
-      right: 15%;
+      top: 0; left: 15%; right: 15%;
       height: 1px;
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6) 30%, rgba(255, 255, 255, 0.6) 70%, transparent);
       pointer-events: none;
       z-index: 2;
     }
 
-    .btn-share::after {
+    .btn-share-icon::after {
       content: '';
       position: absolute;
       top: 0; left: 0; right: 0;
@@ -565,12 +525,17 @@
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
       pointer-events: none;
       z-index: 1;
-      border-radius: 18px 18px 0 0;
+      border-radius: 50% 50% 0 0;
     }
 
-    .btn-share:active {
-      transform: scale(0.96);
+    .btn-share-icon svg {
+      position: relative;
+      z-index: 3;
+      stroke: var(--accent-blue);
+      filter: drop-shadow(0 0 8px rgba(90, 200, 250, 0.5));
     }
+
+    .btn-share-icon:active { transform: scale(0.9); }
 
     /* ---------- FOOTER ---------- */
     .footer {
@@ -622,7 +587,7 @@
     <div class="result" id="result"></div>
 
     <div class="footer">
-      Panic Analyzer v4.2 · Liquid Glass
+      Panic Analyzer v4.3 · Liquid Glass
     </div>
   </div>
 
