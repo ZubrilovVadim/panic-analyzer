@@ -1,18 +1,18 @@
-
 {
   "name": "Panic Analyzer",
-  "short_name": "Panic",
-  "description": "Анализатор panic-логов iPhone",
+  "short_name": "Panic Analyzer",
+  "description": "Приложение для анализа panic-логов iPhone. Расшифровка ошибок, эталонные значения и диагностика.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#1a1a2e",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>",
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzBhODRmZiIgcng9IjIwIi8+PHRleHQgeT0iLjllbSIgZm9udC1zaXplPSI5MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iNTAlIj7wn5SNPC90ZXh0Pjwvc3ZnPg==",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }
