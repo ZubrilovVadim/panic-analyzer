@@ -1,5 +1,4 @@
 let DATABASE = null;
-let SHORT_TEXT = '';
 
 function normalizeQuotes(text) {
   return text
@@ -211,8 +210,14 @@ function analyze() {
     return;
   }
 
-  // Собираем все паник-коды
-  const panicItems = [];
+  let html = '<h2>📋 Результат анализа</h2>';
+  let modelName = null;
+  if (model) {
+    modelName = (DATABASE.models[model] && DATABASE.models[model].name) || model;
+    html += field('Модель устройства', modelName + ' (' + model + ')', true);
+  } else {
+    html += field('Модель устройства', 'Не удалось определить', false);
+  }
 
   if (sensorCodes && sensorCodes.length > 0) {
     sensorCodes.forEach(code => {
@@ -222,51 +227,25 @@ function analyze() {
       } else if (DATABASE.generic_smc && DATABASE.generic_smc[code]) {
         cause = DATABASE.generic_smc[code];
       }
-      panicItems.push({ label: 'SMC ' + code, cause: cause });
+      html += probable('SMC PANIC · ' + code, cause);
     });
   }
+
   if (i2cCodes.length > 0) {
     i2cCodes.forEach(code => {
       const cause = (DATABASE.i2c && DATABASE.i2c[code]) || 'Неизвестная i2c-ошибка';
-      panicItems.push({ label: code.toUpperCase(), cause: cause });
+      html += probable(code.toUpperCase(), cause);
     });
   }
+
   if (aopCode) {
     const cause = (DATABASE.aop && (DATABASE.aop[aopCode] || DATABASE.aop['AOP PANIC'])) || 'Неизвестный AOP-код';
-    panicItems.push({ label: aopCode, cause: cause });
+    html += probable(aopCode, cause);
   }
+
   otherCodes.forEach(code => {
     const cause = (DATABASE.other && DATABASE.other[code]) || 'Нет описания';
-    panicItems.push({ label: code, cause: cause });
-  });
-
-  let modelName = null;
-  if (model) {
-    modelName = (DATABASE.models[model] && DATABASE.models[model].name) || model;
-  }
-
-  // Собираем короткий текст (это пойдёт в шапку и в превью)
-  const shortLines = [];
-  shortLines.push('📱 ' + (modelName || 'Panic Analyzer'));
-  panicItems.forEach(p => {
-    shortLines.push(p.label + ' — ' + p.cause);
-  });
-  if (boardCodes.length > 0) {
-    shortLines.push('🔧 Требует пайки:');
-    boardCodes.forEach(item => {
-      shortLines.push(item.key + ' — ' + item.value);
-    });
-  }
-  SHORT_TEXT = shortLines.join('\n');
-
-  // ШАПКА — кладём ВЕСЬ короткий текст целиком
-  let html = '<h2>📋 Результат анализа</h2>';
-  html += '<div class="field"><div class="field-label">Результат</div>' +
-          '<div class="field-value highlight result-header-text">' + SHORT_TEXT + '</div></div>';
-
-  // Детальные паник-блоки (для визуала)
-  panicItems.forEach(p => {
-    html += probable(p.label, p.cause);
+    html += probable(code, cause);
   });
 
   if (boardCodes.length > 0) {
@@ -280,65 +259,8 @@ function analyze() {
 
   html += getMeasurements(modelName, i2cCodes);
 
-  html += '<div class="share-wrap">' +
-            '<button class="btn-share-icon" onclick="copyResult()" aria-label="Копировать">' +
-              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-                '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>' +
-                '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>' +
-              '</svg>' +
-            '</button>' +
-            '<button class="btn-share-icon" onclick="shareResult()" aria-label="Поделиться">' +
-              '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-                '<path d="M12 15V3"/>' +
-                '<path d="M8 7l4-4 4 4"/>' +
-                '<path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>' +
-              '</svg>' +
-            '</button>' +
-          '</div>';
-
   resultEl.innerHTML = html;
   resultEl.className = 'result show';
-}
-
-function copyResult() {
-  if (!SHORT_TEXT) { alert('Сначала проанализируй паник'); return; }
-  const text = SHORT_TEXT;
-
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function() {
-      alert('✅ Скопировано:\n\n' + text);
-    }).catch(function() {
-      fallbackCopy(text);
-    });
-  } else {
-    fallbackCopy(text);
-  }
-}
-
-function fallbackCopy(text) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.setAttribute('readonly', '');
-  ta.style.position = 'absolute';
-  ta.style.left = '-9999px';
-  document.body.appendChild(ta);
-  ta.focus();
-  ta.select();
-  ta.setSelectionRange(0, text.length);
-  let ok = false;
-  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
-  document.body.removeChild(ta);
-  if (ok) alert('✅ Скопировано:\n\n' + text);
-  else alert('Не удалось скопировать. Скопируй вручную:\n\n' + text);
-}
-
-function shareResult() {
-  if (!SHORT_TEXT) { alert('Сначала проанализируй паник'); return; }
-  if (navigator.share) {
-    navigator.share({ text: SHORT_TEXT }).catch(function() {});
-  } else {
-    copyResult();
-  }
 }
 
 function field(label, value, highlight) {
@@ -360,7 +282,6 @@ function showError(msg) {
 function clearAll() {
   document.getElementById('input').value = '';
   document.getElementById('result').className = 'result';
-  SHORT_TEXT = '';
 }
 
 async function updateDatabase() {
@@ -383,7 +304,5 @@ window.addEventListener('offline', () => setStatus(false));
 window.analyze = analyze;
 window.clearAll = clearAll;
 window.updateDatabase = updateDatabase;
-window.copyResult = copyResult;
-window.shareResult = shareResult;
 
 loadDatabase();
