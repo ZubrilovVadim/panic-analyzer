@@ -1,4 +1,5 @@
 let DATABASE = null;
+let CURRENT_SHARE_TEXT = '';
 
 function normalizeQuotes(text) {
   return text
@@ -188,12 +189,6 @@ function renderMeasurement(key, data) {
   return html;
 }
 
-let shareTextParts = [];
-
-function addShareLine(line) {
-  shareTextParts.push(line);
-}
-
 function analyze() {
   const input = document.getElementById('input').value.trim();
   const resultEl = document.getElementById('result');
@@ -216,17 +211,17 @@ function analyze() {
     return;
   }
 
-  shareTextParts = [];
+  const shareLines = [];
 
   let html = '<h2>📋 Результат анализа</h2>';
   let modelName = null;
   if (model) {
     modelName = (DATABASE.models[model] && DATABASE.models[model].name) || model;
     html += field('Модель устройства', modelName + ' (' + model + ')', true);
-    addShareLine('📱 ' + modelName);
+    shareLines.push('📱 ' + modelName);
   } else {
     html += field('Модель устройства', 'Не удалось определить (в логе нет строки "product")', false);
-    addShareLine('📱 Panic Analyzer');
+    shareLines.push('📱 Panic Analyzer');
   }
 
   if (sensorCodes && sensorCodes.length > 0) {
@@ -238,7 +233,7 @@ function analyze() {
         cause = DATABASE.generic_smc[code];
       }
       html += probable('SMC PANIC · ' + code, cause);
-      addShareLine('SMC PANIC · ' + code + ' — ' + cause);
+      shareLines.push('SMC PANIC · ' + code + ' — ' + cause);
     });
   }
 
@@ -246,35 +241,39 @@ function analyze() {
     i2cCodes.forEach(code => {
       const cause = (DATABASE.i2c && DATABASE.i2c[code]) || 'Неизвестная i2c-ошибка';
       html += probable(code.toUpperCase(), cause);
-      addShareLine(code.toUpperCase() + ' — ' + cause);
+      shareLines.push(code.toUpperCase() + ' — ' + cause);
     });
   }
 
   if (aopCode) {
     const cause = (DATABASE.aop && (DATABASE.aop[aopCode] || DATABASE.aop['AOP PANIC'])) || 'Неизвестный AOP-код';
     html += probable(aopCode, cause);
-    addShareLine(aopCode + ' — ' + cause);
+    shareLines.push(aopCode + ' — ' + cause);
   }
 
   otherCodes.forEach(code => {
     const cause = (DATABASE.other && DATABASE.other[code]) || 'Нет описания';
     html += probable(code, cause);
-    addShareLine(code + ' — ' + cause);
+    shareLines.push(code + ' — ' + cause);
   });
 
   if (boardCodes.length > 0) {
     html += '<div class="board-divider">' +
             '<div class="title">🔧 ТРЕБУЕТ ПАЙКИ / ПЛАТА</div>';
-    addShareLine('');
-    addShareLine('🔧 Требует пайки:');
+    shareLines.push('');
+    shareLines.push('🔧 Требует пайки:');
     boardCodes.forEach(item => {
       html += probable(item.category + ' · ' + item.key, item.value);
-      addShareLine('• ' + item.key + ' — ' + item.value);
+      shareLines.push('• ' + item.key + ' — ' + item.value);
     });
     html += '</div>';
   }
 
   html += getMeasurements(modelName, i2cCodes);
+
+  // Сохраняем полный текст в ГЛОБАЛЬНУЮ переменную — так надёжнее
+  CURRENT_SHARE_TEXT = shareLines.join('\n');
+  console.log('SHARE TEXT:', CURRENT_SHARE_TEXT);
 
   html += '<div class="share-wrap">' +
             '<button class="btn-share-icon" onclick="copyResult()" aria-label="Копировать">' +
@@ -292,48 +291,54 @@ function analyze() {
             '</button>' +
           '</div>';
 
-  const shareText = shareTextParts.join('\n');
-  resultEl.setAttribute('data-share-text', shareText);
-
   resultEl.innerHTML = html;
   resultEl.className = 'result show';
 }
 
 async function copyResult() {
-  const resultEl = document.getElementById('result');
-  const text = resultEl.getAttribute('data-share-text') || '';
+  const text = CURRENT_SHARE_TEXT;
   if (!text) { alert('Сначала проанализируй паник'); return; }
+
+  // Показываем превью того, что копируем (для отладки)
+  const preview = text.length > 200 ? text.substring(0, 200) + '...' : text;
 
   try {
     await navigator.clipboard.writeText(text);
-    alert('✅ Скопировано в буфер обмена\n\nМожно вставить в любое приложение');
+    alert('✅ Скопировано!\n\nВот что скопировано:\n\n' + preview);
   } catch (e) {
     // Fallback для старых браузеров
     const ta = document.createElement('textarea');
     ta.value = text;
     ta.style.position = 'fixed';
+    ta.style.top = '0';
+    ta.style.left = '0';
     ta.style.opacity = '0';
     document.body.appendChild(ta);
+    ta.focus();
     ta.select();
     try {
       document.execCommand('copy');
-      alert('✅ Скопировано в буфер обмена');
+      alert('✅ Скопировано!\n\nВот что скопировано:\n\n' + preview);
     } catch (err) {
-      alert('❌ Не удалось скопировать');
+      alert('❌ Не удалось скопировать: ' + err.message);
     }
     document.body.removeChild(ta);
   }
 }
 
 async function shareResult() {
-  const resultEl = document.getElementById('result');
-  const text = resultEl.getAttribute('data-share-text') || '';
+  const text = CURRENT_SHARE_TEXT;
   if (!text) { alert('Сначала проанализируй паник'); return; }
 
   if (navigator.share) {
     try {
       await navigator.share({ text: text });
-    } catch (e) {}
+    } catch (e) {
+      // Пользователь отменил или ошибка — попробуем скопировать
+      if (e.name !== 'AbortError') {
+        copyResult();
+      }
+    }
     return;
   }
   copyResult();
@@ -358,6 +363,7 @@ function showError(msg) {
 function clearAll() {
   document.getElementById('input').value = '';
   document.getElementById('result').className = 'result';
+  CURRENT_SHARE_TEXT = '';
 }
 
 async function updateDatabase() {
