@@ -194,7 +194,6 @@
       animation: fadeIn 0.6s ease;
     }
 
-    /* Верхняя бликовая линия — как грань стекла */
     .input-card::before {
       content: '';
       position: absolute;
@@ -208,7 +207,6 @@
       border-radius: 2px;
     }
 
-    /* Внутренний градиентный блик */
     .input-card::after {
       content: '';
       position: absolute;
@@ -280,7 +278,6 @@
       gap: 8px;
     }
 
-    /* Верхняя бликовая линия на кнопках */
     button::before {
       content: '';
       position: absolute;
@@ -293,7 +290,6 @@
       z-index: 2;
     }
 
-    /* Нижний мягкий блик внутри */
     button::after {
       content: '';
       position: absolute;
@@ -314,18 +310,15 @@
         inset 0 -1px 1px rgba(0, 0, 0, 0.3);
     }
 
-    /* Анализировать — синий текст на стекле */
     .btn-analyze {
       color: var(--accent-blue);
       text-shadow: 0 0 24px rgba(90, 200, 250, 0.5);
     }
 
-    /* Очистить — обычный текст */
     .btn-clear {
       color: var(--text);
     }
 
-    /* Обновить базу — синий текст, на всю ширину */
     .btn-update {
       width: 100%;
       margin-top: 12px;
@@ -502,6 +495,83 @@
       font-weight: 500;
     }
 
+    /* ---------- DIVIDER для паяльных ---------- */
+    .board-divider {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 2px solid rgba(255, 69, 58, 0.3);
+    }
+
+    .board-divider .title {
+      color: var(--danger);
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 12px;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ---------- SHARE BUTTON ---------- */
+    .btn-share {
+      width: 100%;
+      margin-top: 18px;
+      padding: 15px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--accent-blue);
+      text-shadow: 0 0 20px rgba(90, 200, 250, 0.4);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-top-color: var(--glass-border-top);
+      border-radius: 18px;
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      box-shadow:
+        0 12px 32px -8px var(--glass-shadow),
+        0 2px 6px rgba(0, 0, 0, 0.2),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+                  box-shadow 0.2s ease;
+    }
+
+    .btn-share::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 15%;
+      right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6) 30%, rgba(255, 255, 255, 0.6) 70%, transparent);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .btn-share::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+      pointer-events: none;
+      z-index: 1;
+      border-radius: 18px 18px 0 0;
+    }
+
+    .btn-share:active {
+      transform: scale(0.96);
+    }
+
     /* ---------- FOOTER ---------- */
     .footer {
       text-align: center;
@@ -552,7 +622,7 @@
     <div class="result" id="result"></div>
 
     <div class="footer">
-      Panic Analyzer v4.1 · Liquid Glass
+      Panic Analyzer v4.2 · Liquid Glass
     </div>
   </div>
 
