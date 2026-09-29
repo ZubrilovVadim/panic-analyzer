@@ -212,8 +212,13 @@
     .field-value {
       font-size: 16px; color: var(--text); line-height: 1.5; font-weight: 500;
       letter-spacing: -0.01em; white-space: pre-line;
+      -webkit-user-select: text; user-select: text;
     }
     .field-value.highlight { color: var(--accent-blue); font-weight: 600; }
+    .result-header-text {
+      font-size: 15px;
+      line-height: 1.6;
+    }
 
     .probable {
       background: var(--glass-bg-light);
@@ -302,23 +307,6 @@
     }
     .btn-share-icon:active { transform: scale(0.9); }
 
-    .short-preview {
-      margin-top: 14px;
-      padding: 12px;
-      background: rgba(48, 209, 88, 0.06);
-      border: 1px solid rgba(48, 209, 88, 0.2);
-      border-radius: 14px;
-    }
-    .short-preview-title {
-      font-size: 11px; font-weight: 700; color: var(--accent-green);
-      text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px;
-    }
-    .short-preview-text {
-      font-family: 'SF Mono', ui-monospace, monospace;
-      font-size: 13px; color: var(--text);
-      line-height: 1.5; white-space: pre-wrap; word-break: break-word; margin: 0;
-    }
-
     .footer {
       text-align: center; font-size: 11px; color: var(--text-tertiary);
       margin-top: 24px; padding: 16px 0; font-weight: 500;
@@ -352,7 +340,7 @@
     <div class="result" id="result"></div>
 
     <div class="footer">
-      Panic Analyzer v5.1 · Liquid Glass
+      Panic Analyzer v5.2 · Liquid Glass
     </div>
   </div>
 
