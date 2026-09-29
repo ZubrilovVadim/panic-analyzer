@@ -83,7 +83,6 @@
       margin: 0 auto;
     }
 
-    /* ---------- HEADER ---------- */
     .header {
       text-align: center;
       padding: 24px 0 22px;
@@ -163,7 +162,6 @@
     .status-pill.offline { color: var(--danger); }
     .status-pill.offline::before { animation: none; box-shadow: none; }
 
-    /* ---------- INPUT CARD ---------- */
     .input-card {
       position: relative;
       background: var(--glass-bg);
@@ -226,7 +224,6 @@
 
     textarea::placeholder { color: var(--text-tertiary); }
 
-    /* ---------- BUTTONS ---------- */
     .btn-row { display: flex; gap: 12px; margin-top: 16px; }
 
     button {
@@ -299,7 +296,6 @@
       text-shadow: 0 0 20px rgba(90, 200, 250, 0.4);
     }
 
-    /* ---------- RESULT ---------- */
     .result {
       margin-top: 22px;
       padding: 20px;
@@ -343,7 +339,6 @@
 
     .result.error h2 { color: var(--danger); }
 
-    /* ---------- FIELDS ---------- */
     .field {
       padding: 14px 0;
       border-bottom: 1px solid var(--glass-border);
@@ -371,7 +366,6 @@
 
     .field-value.highlight { color: var(--accent-blue); font-weight: 600; }
 
-    /* ---------- PROBABLE ---------- */
     .probable {
       background: var(--glass-bg-light);
       border: 1px solid var(--glass-border);
@@ -399,7 +393,6 @@
       font-weight: 500;
     }
 
-    /* ---------- MEASUREMENTS ---------- */
     .measure-box {
       background: rgba(90, 200, 250, 0.08);
       border: 1px solid rgba(90, 200, 250, 0.22);
@@ -452,7 +445,6 @@
 
     .measure-row b { color: var(--text-secondary); font-weight: 500; }
 
-    /* ---------- DIVIDER для паяльных ---------- */
     .board-divider {
       margin-top: 20px;
       padding-top: 16px;
@@ -470,12 +462,10 @@
       gap: 6px;
     }
 
-    /* ============================================
-       МАЛЕНЬКАЯ КРУГЛАЯ КНОПКА «ПОДЕЛИТЬСЯ»
-       ============================================ */
     .share-wrap {
       display: flex;
       justify-content: flex-end;
+      gap: 12px;
       margin-top: 28px;
       padding-top: 8px;
       padding-bottom: 4px;
@@ -537,7 +527,6 @@
 
     .btn-share-icon:active { transform: scale(0.9); }
 
-    /* ---------- FOOTER ---------- */
     .footer {
       text-align: center;
       font-size: 11px;
@@ -547,7 +536,6 @@
       font-weight: 500;
     }
 
-    /* ---------- ANIMATIONS ---------- */
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
@@ -587,7 +575,7 @@
     <div class="result" id="result"></div>
 
     <div class="footer">
-      Panic Analyzer v4.3 · Liquid Glass
+      Panic Analyzer v4.4 · Liquid Glass
     </div>
   </div>
 
