@@ -209,7 +209,10 @@
       font-size: 11px; font-weight: 600; color: var(--text-secondary);
       text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;
     }
-    .field-value { font-size: 16px; color: var(--text); line-height: 1.4; font-weight: 500; letter-spacing: -0.01em; }
+    .field-value {
+      font-size: 16px; color: var(--text); line-height: 1.5; font-weight: 500;
+      letter-spacing: -0.01em; white-space: pre-line;
+    }
     .field-value.highlight { color: var(--accent-blue); font-weight: 600; }
 
     .probable {
@@ -260,6 +263,62 @@
       letter-spacing: 0.3px; display: flex; align-items: center; gap: 6px;
     }
 
+    .share-wrap {
+      display: flex; justify-content: flex-end; gap: 12px;
+      margin-top: 28px; padding-top: 8px;
+    }
+    .btn-share-icon {
+      flex: none; width: 48px; height: 48px; padding: 0;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent-blue);
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-top-color: var(--glass-border-top);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      box-shadow:
+        0 12px 32px -8px var(--glass-shadow),
+        0 2px 6px rgba(0, 0, 0, 0.2),
+        inset 0 1px 1px rgba(255, 255, 255, 0.2),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.25);
+      position: relative; overflow: hidden; cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+    }
+    .btn-share-icon::before {
+      content: ''; position: absolute; top: 0; left: 15%; right: 15%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6) 30%, rgba(255, 255, 255, 0.6) 70%, transparent);
+      pointer-events: none; z-index: 2;
+    }
+    .btn-share-icon::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+      pointer-events: none; z-index: 1; border-radius: 50% 50% 0 0;
+    }
+    .btn-share-icon svg {
+      position: relative; z-index: 3;
+      stroke: var(--accent-blue);
+      filter: drop-shadow(0 0 8px rgba(90, 200, 250, 0.5));
+    }
+    .btn-share-icon:active { transform: scale(0.9); }
+
+    .short-preview {
+      margin-top: 14px;
+      padding: 12px;
+      background: rgba(48, 209, 88, 0.06);
+      border: 1px solid rgba(48, 209, 88, 0.2);
+      border-radius: 14px;
+    }
+    .short-preview-title {
+      font-size: 11px; font-weight: 700; color: var(--accent-green);
+      text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px;
+    }
+    .short-preview-text {
+      font-family: 'SF Mono', ui-monospace, monospace;
+      font-size: 13px; color: var(--text);
+      line-height: 1.5; white-space: pre-wrap; word-break: break-word; margin: 0;
+    }
+
     .footer {
       text-align: center; font-size: 11px; color: var(--text-tertiary);
       margin-top: 24px; padding: 16px 0; font-weight: 500;
@@ -293,7 +352,7 @@
     <div class="result" id="result"></div>
 
     <div class="footer">
-      Panic Analyzer v4.8 · Liquid Glass
+      Panic Analyzer v5.1 · Liquid Glass
     </div>
   </div>
 
